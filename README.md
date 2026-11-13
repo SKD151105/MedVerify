@@ -1,224 +1,106 @@
-# 🩺 MedVerify: Clinical Evidence Copilot & RAG Guardrails Platform
-### Adaptive Retrieval-Augmented Generation with Neural Cross-Encoder Reranking, Claim-Level Hallucination Guardrails, and Observability Telemetry
+# 🩺 MedVerify: Adaptive RAG & Hallucination Guardrails for Domain QA
 
-[![Python 3.11](https://img.shields.io/badge/Python-3.11-3776AB.svg?logo=python&logoColor=white)](https://www.python.org/)
-[![Dataset: PubMedQA](https://img.shields.io/badge/Dataset-PubMedQA-0071BC.svg?logo=pubmed&logoColor=white)](https://pubmedqa.github.io/)
-[![UI: Streamlit](https://img.shields.io/badge/UI-Streamlit-FF4B4B.svg?logo=streamlit&logoColor=white)](https://streamlit.io/)
-[![Vector DB: Local + Pinecone Ready](https://img.shields.io/badge/Vector_DB-Hybrid_%2F_Pinecone-6366F1.svg)]()
-[![License: MIT](https://img.shields.io/badge/License-MIT-green.svg)](LICENSE)
+## 📌 1. Project Concept & Problem Statement
 
----
+Modern Retrieval-Augmented Generation (RAG) systems in high-stakes domains (such as healthcare, biomedical research, and clinical evidence QA) face two fundamental vulnerabilities:
 
-## 📌 1. Project Overview & Motivation
+1. **Blind Retrieval (Naive Fixed-RAG):** Standard pipelines retrieve a static top-$k$ documents for *every* query indiscriminately. For simple definitional queries, this wastes significant token budget, introduces unnecessary latency, and pollutes the prompt context with irrelevant distractors.
+2. **Contextual Hallucination:** Even when grounded literature is retrieved, Large Language Models frequently extrapolate, fabricate findings, or contradict source documents due to internal parametric biases. In clinical and high-stakes settings, ungrounded claims can lead to critical errors.
 
-In high-stakes biomedical question answering, traditional Generative AI and standard RAG systems suffer from two fatal vulnerabilities:
-1. **Blind Retrieval (Naive Fixed-RAG):** Standard RAG pipelines retrieve a fixed $k$ documents for *every single query* indiscriminately. For simple definitions, this wastes thousands of tokens, adds unnecessary latency, and injects noisy distractor text.
-2. **Contextual Hallucination:** Even when relevant medical literature is provided, Large Language Models frequently extrapolate, distort drug dosages, or contradict trial findings due to internal parametric bias. In healthcare, an ungrounded hallucination can have life-or-death consequences.
-
-**MedVerify** is an enterprise-grade clinical AI platform that resolves both challenges through a **3-stage cognitive guardrail pipeline**:
-* **Adaptive Retrieval Gate:** Automatically categorizes queries into `DIRECT_ANSWER` (bypasses retrieval for basic definitions), `CLINICAL_RETRIEVAL` (triggers hybrid search for trial evidence), or `MULTI_HOP` (decomposes comparative queries).
-* **Cross-Encoder Neural Reranking:** Computes joint cross-attention over hybrid candidates (BM25 sparse + Dense vector) to promote high-signal literature and prune low-relevance distractors.
-* **Claim-Level NLI Hallucination Verifier:** Decomposes answers into atomic clinical propositions and verifies each against retrieved PubMed evidence using Natural Language Inference (🟢 **Entailed**, 🟡 **Extrapolated**, 🔴 **Hallucination Blocked**).
-* **Full-Stack Observability Dashboard:** An interactive split-screen interface displaying real-time routing decisions, cross-encoder rank-shift deltas, token cost savings, and latency waterfalls.
+**MedVerify** is designed as an intelligent, self-correcting RAG platform that dynamically determines **when to retrieve**, **filters and reranks evidence**, and **rigorously verifies answer groundedness** before delivery.
 
 ---
 
-## 🏗️ 2. System Architecture
+## 🎯 2. Core Pillars of the Planned System
 
-```mermaid
-flowchart TD
-    UserQuery["Clinical Query"] --> Router{"Adaptive Routing Gate"}
-
-    Router -- "Definitional Query (Confidence > 0.85)" --> DirectLLM["Direct Parametric LLM (Zero-Retrieval)"]
-    Router -- "Clinical Evidence / Drug Study" --> HybridRetriever["Hybrid Retrieval (BM25 + Dense)"]
-    Router -- "Multi-Hop / Comparative" --> Decomposer["Query Decomposer & Iterative Search"]
-
-    Decomposer --> HybridRetriever
-    HybridRetriever --> RawHits["Top-10 Candidate Passages"]
-    RawHits --> CrossEncoder["Neural Cross-Encoder Reranker"]
-    CrossEncoder --> Pruning["Dynamic Threshold Pruning (Score >= 0.20)"]
-    
-    Pruning --> Generator["Clinical Synthesis LLM (With Citations)"]
-    DirectLLM --> Verifier
-    Generator --> Verifier{"Proposition-Level NLI Verifier"}
-
-    Verifier -- "All Claims Entailed (🟢)" --> Output["Verified Grounded Clinical Response"]
-    Verifier -- "Hallucinated / Contradicted (🔴)" --> Correction["Self-Correction & Refusal Guardrail"]
-    Correction --> Generator
-
-    subgraph Telemetry ["Real-Time Observability Engine"]
-        RouteMetric["Routing Decision & Confidence"]
-        RerankMetric["Reranking Shift Delta"]
-        CostMetric["Tokens Saved vs Fixed-RAG"]
-        FaithfulnessMetric["RAGAS Faithfulness Score"]
-    end
-
-    Router -.-> RouteMetric
-    CrossEncoder -.-> RerankMetric
-    Verifier -.-> FaithfulnessMetric
-    Generator -.-> CostMetric
 ```
+                         ┌─────────────────────────┐
+                         │       User Query        │
+                         └────────────┬────────────┘
+                                      │
+                                      ▼
+                      [1. Adaptive Retrieval Gate]
+                      • Direct Answer (Parametric memory)
+                      • Single-Hop Retrieval (Domain evidence)
+                      • Multi-Hop Decomposition (Comparative queries)
+                                      │
+                      ┌───────────────┴───────────────┐
+                      ▼                               ▼
+                [Direct Answer]             [2. Hybrid Retrieval]
+              (Zero-Token Overhead)         (Lexical + Dense Embeddings)
+                                                      │
+                                                      ▼
+                                            [3. Neural Reranker]
+                                         (Cross-Encoder Score Pruning)
+                                                      │
+                                                      ▼
+                                            [4. Grounded Synthesis]
+                                         (Strict Citation Attribution)
+                                                      │
+                                                      ▼
+                                         [5. Hallucination Verifier]
+                                          (Claim-Level NLI Guardrail)
+                                                      │
+                                  ┌───────────────────┴───────────────────┐
+                                  ▼                                       ▼
+                         Faithful / Grounded                    Hallucination Flagged
+                          [Deliver Output]                   [Self-Correction Reflection]
+```
+
+### Pillar 1: Adaptive Retrieval (Decide *When* to Retrieve)
+* Evaluate query complexity, medical entity density, and model uncertainty.
+* Dynamically route between:
+  * **Direct Answer:** Simple conceptual or definitional queries bypass retrieval entirely.
+  * **Single-Hop Evidence:** Targeted clinical queries trigger focused search.
+  * **Multi-Hop Synthesis:** Complex queries (e.g., comparative drug interactions) are decomposed into sub-queries.
+
+### Pillar 2: Signal-to-Noise Reranking
+* Hybrid retrieval merging sparse lexical search (for exact drug names, dosages, and acronyms) and dense semantic embeddings.
+* Neural Cross-Encoder computes joint attention `(query, passage)` to re-score candidates.
+* Dynamic threshold pruning eliminates low-relevance distractor chunks before they reach the LLM context.
+
+### Pillar 3: Claim-Level Hallucination Detection & Verification
+* Decompose generated answers into atomic factual propositions.
+* Verify each proposition against retrieved premise evidence using Natural Language Inference (NLI):
+  * 🟢 **Entailed:** Strictly supported by cited literature.
+  * 🟡 **Extrapolated / Neutral:** General knowledge not explicitly mentioned in the context.
+  * 🔴 **Contradicted / Unsupported:** Conflicting or fabricated claim.
+* Trigger automated self-correction reflection if ungrounded assertions are detected.
+
+### Pillar 4: Production Observability & Telemetry Platform
+* Expose real-time telemetry metrics in an interactive interface:
+  * Dynamic routing decision and confidence score.
+  * Cross-encoder rank-shift deltas (original hybrid rank vs. reranked rank).
+  * Token consumption and cost savings compared to naive Fixed-RAG.
+  * End-to-end latency waterfall breakdown across every cognitive stage.
+  * Automated faithfulness and answer relevance scorecard (RAGAS-aligned).
 
 ---
 
-## 🔬 3. Empirical Benchmarks (PubMedQA)
+## 🔬 3. Planned Empirical Evaluation & Baselines
 
-Evaluated across randomized clinical trials, dosing guidelines, surgical outcomes, and negative trial findings:
+The system will be benchmarked on recognized domain datasets:
+* **PubMedQA:** Biomedical research question answering (evaluating evidence faithfulness and clinical decisions).
+* **HotpotQA:** Multi-hop reasoning across complex documents.
+* **Natural Questions (NQ) & MS MARCO:** Open-domain passage ranking and retrieval.
 
-| Evaluation Metric | No-RAG (Parametric) | Fixed-RAG (Naive Top-5) | MedVerify (Adaptive + Guardrail) |
-| :--- | :---: | :---: | :---: |
-| **Faithfulness Score (↑)** | 0.42 | 0.74 | **0.96 (State-of-the-Art)** |
-| **Hallucination Rate (↓)** | 48.0% | 22.0% | **< 3.0% (Near Zero)** |
-| **Avg Tokens / Query (↓)** | ~75 | ~1,850 (Highest) | **~380 (Saved 65% – 75%)** |
-| **End-to-End Latency** | ~0.4s | ~2.6s | **~0.85s (Sub-Second)** |
-| **Citation Attribution** | None | Unverified / Blind | **Audited `[PMID: ...]` Links** |
+### Baselines for Comparison
+1. **No-RAG (Parametric LLM):** Answers generated purely from internal model weights.
+2. **Fixed-RAG (Naive Top-$k$):** Static vector retrieval with no reranking or hallucination verification.
+3. **MedVerify (Adaptive RAG + Guardrails):** The proposed intelligent pipeline.
 
----
-
-## 📁 4. Project Directory Structure
-
-```
-MedVerify/
-├── .env.example              # Template for API keys (Gemini, OpenAI, Pinecone)
-├── .gitignore                # Ignores venv, caches, model weights, and local databases
-├── README.md                 # Complete system documentation & research spec
-├── requirements.txt          # Python dependencies
-├── config.py                 # Central configuration parameters, model paths, and thresholds
-├── data/
-│   ├── download_pubmedqa.py  # Script to download official PubMedQA expert dataset
-│   └── sample_data.json      # Curated clinical test cases (cardiology, nephrology, oncology)
-├── src/
-│   ├── __init__.py
-│   ├── data_loader.py        # Parses PubMed abstracts (Background, Methods, Results, Conclusions)
-│   ├── vector_store.py       # Hybrid search: BM25 + Dense vector embeddings (+ Pinecone adapter)
-│   ├── reranker.py           # Neural Cross-Encoder scoring with rank-shift delta tracking
-│   ├── adaptive_router.py    # Adaptive gate: Direct vs Clinical Evidence vs Multi-Hop
-│   ├── generator.py          # Grounded clinical synthesis with inline [PMID: ...] citations
-│   ├── verifier.py           # Atomic proposition extractor and NLI hallucination auditor
-│   ├── telemetry.py          # Token savings tracker, latency waterfall, and RAGAS metrics
-│   └── pipeline.py           # Orchestrator & 3-way baseline runner (No-RAG vs Fixed vs MedVerify)
-├── evaluation/
-│   ├── benchmark.py          # Automated 3-way benchmark across PubMedQA test cases
-│   └── metrics.py            # Faithfulness, hallucination, token, and latency metrics
-└── app/
-    ├── app.py                # Obsidian glassmorphic Streamlit interactive dashboard
-    └── components/
-        ├── __init__.py
-        └── visualizer.py     # HTML proposition badges, Plotly waterfalls, and rank-shift charts
-```
+### Target Metrics
+* **Faithfulness / Groundedness Score:** Proportion of generated claims strictly entailed by retrieved context.
+* **Hallucination Reduction Rate:** Reduction in unsupported or contradicted assertions vs. baselines.
+* **Token Efficiency:** Percentage of prompt tokens saved by adaptive retrieval gating and context pruning.
+* **Latency Tradeoff:** Response time delta across routing, reranking, and verification stages.
 
 ---
 
-## 🚀 5. Quickstart Guide (Step-by-Step)
+## 📋 4. Next Steps & Roadmap
 
-### Prerequisites
-* Python 3.10 or 3.11 installed on your system.
-* Git installed.
-
-### Step 1: Clone the Repository
-```bash
-git clone https://github.com/SKD151105/MedVerify.git
-cd MedVerify
-```
-
-### Step 2: Create and Activate Virtual Environment
-
-**In Git Bash:**
-```bash
-python -m venv .venv
-source .venv/Scripts/activate
-```
-
-**In Windows PowerShell:**
-```powershell
-python -m venv .venv
-.\.venv\Scripts\Activate.ps1
-```
-
-*(Your terminal prompt will indicate `(.venv)` when active).*
-
-### Step 3: Install Dependencies
-```bash
-pip install -r requirements.txt
-```
-
-### Step 4: Configure Environment Variables (Optional)
-Copy `.env.example` to `.env`:
-```bash
-cp .env.example .env
-```
-* **Offline / Demo Mode (Default):** Zero API keys required! Runs fast simulated clinical synthesis and local neural embeddings.
-* **Google Gemini API:** Add `GEMINI_API_KEY=your_key` in `.env` or paste it directly in the UI sidebar.
-* **OpenAI API:** Add `OPENAI_API_KEY=your_key` in `.env`.
-* **Pinecone (Optional):** Add `PINECONE_API_KEY=your_key` and set `VECTOR_DB_TYPE=pinecone`.
-
-### Step 5: Launch the Interactive Web Application
-```bash
-streamlit run app/app.py
-```
-Open your web browser at **`http://localhost:8501`**.
-
----
-
-## 🖥️ 6. How to Use & Verify the Platform
-
-### A. Live Clinical Copilot (Tab 1)
-1. **Select a Clinical Scenario** from the sidebar dropdown (e.g., *Metformin in CKD patients*, *Apixaban renal dosing*, or *Preoperative statins*).
-2. Click **🚀 Run Cognitive Pipeline**.
-3. **Inspect the Clinical Synthesis (Left Pane):**
-   * Every sentence is highlighted with an evidence badge:
-     * 🟢 **Entailed (95%+)**: Confirmed by the cited PubMed trial.
-     * 🟡 **Extrapolated**: General clinical knowledge.
-     * 🔴 **Hallucination Blocked**: Unverified or contradicted claims caught by the guardrail.
-   * Click any `PMID: 28491530 ↗` badge to open the original study on NCBI PubMed.
-4. **Inspect the Telemetry Inspector (Right Pane):**
-   * **Adaptive Routing Gate:** Shows why the query required retrieval vs. direct answer.
-   * **Cross-Encoder Rank-Shift Chart:** Visualizes how candidate abstracts moved up or down after neural reranking.
-   * **Latency Waterfall:** Breaks down execution milliseconds across Routing, Retrieval, Reranking, Synthesis, and NLI.
-
-### B. 3-Way Baseline Benchmark (Tab 2)
-Click the **🔬 3-Way Baseline Benchmark** tab to view a direct side-by-side run of the exact same question through:
-1. **No-RAG (Parametric):** Closed-book LLM memory only.
-2. **Fixed-RAG (Naive Top-5):** Blind vector search without reranking or guardrails.
-3. **MedVerify (Adaptive):** Dynamic gating, neural reranking, and NLI verification.
-
-### C. Run Terminal Benchmark Suite
-To execute an automated test across all benchmark queries:
-```bash
-python evaluation/benchmark.py
-```
-
----
-
-## 🌲 7. Vector Database Support & Pinecone Integration
-
-MedVerify supports flexible vector database backends configured in `config.py` or `.env`:
-1. **Hybrid Local (Default - Zero Cost):**
-   * Lexical BM25 (`rank-bm25`) + Dense Sentence Transformers (`all-MiniLM-L6-v2`) fused via **Reciprocal Rank Fusion (RRF)**.
-   * Requires zero cloud setup, zero API keys, and runs entirely offline.
-2. **Pinecone Cloud Vector Database:**
-   * MedVerify includes a native Pinecone adapter in `src/vector_store.py`.
-   * To enable Pinecone:
-     1. Install Pinecone: `pip install pinecone-client`
-     2. Set in `.env`:
-        ```env
-        VECTOR_DB_TYPE=pinecone
-        PINECONE_API_KEY=your_pinecone_api_key
-        PINECONE_INDEX_NAME=medverify-pubmedqa
-        ```
-
----
-
-## 🛡️ 8. Troubleshooting & FAQ
-
-* **Q: Why was the app downloading models on first run?**
-  * *A:* On the very first launch, Sentence Transformers downloads the lightweight cross-encoder model (~80 MB) to `data/hf_cache`. Subsequent runs load instantly from disk in under 1 second.
-* **Q: Can I use this for non-medical domains?**
-  * *A:* Absolutely! Swap the dataset in `data/` and adjust the query triggers in `src/adaptive_router.py` to adapt MedVerify for legal, financial, or enterprise technical support.
-* **Q: How does the hallucination guardrail self-correct?**
-  * *A:* When `src/verifier.py` detects a proposition whose NLI score indicates contradiction or lacks premise grounding, it flags the claim and invokes the self-correction reflection loop to prune unverified claims before clinical presentation.
-
----
-
-## 📜 License
-Distributed under the MIT License. See `LICENSE` for more information.
+- [ ] **Step 1:** Select and finalize tech stack (Backend framework, Frontend UI, Vector DB, LLM / Embedding APIs).
+- [ ] **Step 2:** Ingest and index target domain datasets (PubMedQA, HotpotQA).
+- [ ] **Step 3:** Implement core cognitive modules (Router, Hybrid Retriever, Cross-Encoder Reranker, Synthesis Engine, NLI Verifier).
+- [ ] **Step 4:** Build interactive observability telemetry dashboard.
+- [ ] **Step 5:** Run full empirical evaluation suite and generate comparative research benchmarks.
