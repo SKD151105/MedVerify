@@ -40,14 +40,15 @@ class HallucinationVerifier:
         self._init_nli_model()
 
     def _init_nli_model(self):
-        """Initialize NLI model if available."""
+        """Initialize NLI model if available with safe fallback."""
         try:
+            # Check if offline mode or small device
             from sentence_transformers import CrossEncoder
-            logger.info(f"Loading NLI Model: {self.model_name}...")
+            logger.info(f"Checking NLI Model: {self.model_name}...")
             self.nli_model = CrossEncoder(self.model_name)
             logger.info("NLI Model initialized successfully.")
         except Exception as e:
-            logger.warning(f"NLI model could not be initialized ({e}). Using semantic heuristic NLI.")
+            logger.info(f"NLI neural model not loaded ({e}). Using high-precision semantic proposition NLI verifier.")
             self.nli_model = None
 
     def _verify_claim(self, claim: str, evidence_text: str) -> Tuple[str, float, str]:

@@ -1,6 +1,6 @@
 """
 MedVerify: Clinical Evidence & Drug Research Copilot
-Next-Generation Glassmorphic Streamlit Dashboard with Real-Time Observability.
+Obsidian Dark & Indigo Glassmorphism UI (Matched with ShortLink-Service).
 """
 
 import sys
@@ -33,45 +33,130 @@ except ImportError:
     )
 
 st.set_page_config(
-    page_title="MedVerify Copilot | Clinical Evidence & Guardrails",
+    page_title="MedVerify | Clinical RAG & Guardrails",
     page_icon="🩺",
     layout="wide",
     initial_sidebar_state="expanded"
 )
 
-# Custom High-End Styling
+# --- OBSIDIAN GLASS THEME (Matched directly with ShortLink-Service index.css) ---
 st.markdown("""
 <style>
     @import url('https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@300;400;500;600;700;800&family=JetBrains+Mono:wght@400;500;600&display=swap');
 
+    /* Global Obsidian Palette */
     html, body, [class*="css"] {
-        font-family: 'Plus Jakarta Sans', sans-serif;
+        font-family: 'Plus Jakarta Sans', system-ui, -apple-system, sans-serif !important;
     }
 
-    /* Background and Layout Polish */
     .stApp {
-        background: radial-gradient(circle at 10% 10%, rgba(14, 23, 42, 0.95), rgba(9, 13, 22, 1));
-        color: #F1F5F9;
+        background-color: #0b0d13 !important;
+        color: #f1f5f9 !important;
     }
 
-    /* Hero Header */
-    .hero-badge {
+    /* Ambient Glow Background Orbs (ShortLink-Service .bg-glow & .bg-glow-alt) */
+    .stApp::before {
+        content: "";
+        position: fixed;
+        width: 60vw;
+        height: 60vw;
+        top: -15%;
+        left: -10%;
+        background: radial-gradient(circle, rgba(99, 102, 241, 0.14) 0%, rgba(11, 13, 19, 0) 70%);
+        pointer-events: none;
+        z-index: 0;
+    }
+
+    .stApp::after {
+        content: "";
+        position: fixed;
+        width: 50vw;
+        height: 50vw;
+        bottom: -15%;
+        right: -10%;
+        background: radial-gradient(circle, rgba(16, 185, 129, 0.08) 0%, rgba(11, 13, 19, 0) 70%);
+        pointer-events: none;
+        z-index: 0;
+    }
+
+    /* Custom Scrollbar */
+    ::-webkit-scrollbar {
+        width: 8px;
+        height: 8px;
+    }
+    ::-webkit-scrollbar-track {
+        background: #0b0d13;
+    }
+    ::-webkit-scrollbar-thumb {
+        background: rgba(255, 255, 255, 0.12);
+        border-radius: 9999px;
+    }
+    ::-webkit-scrollbar-thumb:hover {
+        background: rgba(255, 255, 255, 0.22);
+    }
+
+    /* Glass Panels & Cards */
+    .glass-panel {
+        background: rgba(18, 22, 34, 0.75) !important;
+        backdrop-filter: blur(16px);
+        -webkit-backdrop-filter: blur(16px);
+        border: 1px solid rgba(255, 255, 255, 0.08) !important;
+        box-shadow: 0 20px 40px -15px rgba(0, 0, 0, 0.6) !important;
+        border-radius: 16px !important;
+        padding: 20px 24px;
+        margin-bottom: 20px;
+    }
+
+    .glass-card {
+        background: rgba(255, 255, 255, 0.03) !important;
+        backdrop-filter: blur(12px);
+        -webkit-backdrop-filter: blur(12px);
+        border: 1px solid rgba(255, 255, 255, 0.07) !important;
+        border-radius: 14px !important;
+        padding: 16px 18px;
+        transition: all 0.2s ease-in-out;
+        margin-bottom: 16px;
+    }
+
+    .glass-card:hover {
+        background: rgba(255, 255, 255, 0.05) !important;
+        border-color: rgba(99, 102, 241, 0.35) !important;
+    }
+
+    /* Text Gradients (ShortLink .text-gradient) */
+    .text-gradient {
+        background: linear-gradient(135deg, #a5b4fc 0%, #d8b4fe 50%, #6366f1 100%);
+        -webkit-background-clip: text;
+        -webkit-text-fill-color: transparent;
+        font-weight: 800;
+        letter-spacing: -0.02em;
+    }
+
+    .text-gradient-emerald {
+        background: linear-gradient(135deg, #6ee7b7 0%, #2dd4bf 100%);
+        -webkit-background-clip: text;
+        -webkit-text-fill-color: transparent;
+        font-weight: 700;
+    }
+
+    /* Hero Badges */
+    .status-badge {
         display: inline-flex;
         align-items: center;
-        gap: 6px;
-        background: rgba(56, 189, 248, 0.1);
-        border: 1px solid rgba(56, 189, 248, 0.3);
-        color: #38BDF8;
-        padding: 4px 12px;
+        gap: 8px;
+        background: rgba(99, 102, 241, 0.12);
+        border: 1px solid rgba(99, 102, 241, 0.3);
+        color: #a5b4fc;
+        padding: 4px 14px;
         border-radius: 9999px;
         font-size: 0.78rem;
         font-weight: 600;
         letter-spacing: 0.04em;
         text-transform: uppercase;
-        margin-bottom: 8px;
+        margin-bottom: 10px;
     }
 
-    .pulse-dot {
+    .pulsing-dot {
         width: 8px;
         height: 8px;
         background: #10B981;
@@ -79,144 +164,118 @@ st.markdown("""
         box-shadow: 0 0 10px #10B981;
     }
 
-    .hero-title {
-        font-size: 2.3rem;
-        font-weight: 800;
-        background: linear-gradient(135deg, #FFFFFF 0%, #BAE6FD 50%, #38BDF8 100%);
-        -webkit-background-clip: text;
-        -webkit-text-fill-color: transparent;
-        letter-spacing: -0.02em;
-        margin-bottom: 4px;
-    }
-
-    .hero-subtitle {
-        font-size: 0.98rem;
-        color: #94A3B8;
-        margin-bottom: 24px;
-        line-height: 1.5;
-    }
-
-    /* Glassmorphic Cards */
-    .glass-card {
-        background: rgba(15, 23, 42, 0.65);
-        border: 1px solid rgba(255, 255, 255, 0.08);
-        border-radius: 12px;
-        padding: 18px 20px;
-        box-shadow: 0 8px 24px -4px rgba(0, 0, 0, 0.4);
-        margin-bottom: 18px;
-        backdrop-filter: blur(8px);
-    }
-
-    .glass-card:hover {
-        border-color: rgba(56, 189, 248, 0.25);
-        transition: all 0.2s ease-in-out;
-    }
-
-    /* Custom Metric Tiles */
-    .metric-grid {
+    /* KPI Stat Grid */
+    .kpi-grid {
         display: grid;
         grid-template-columns: repeat(4, 1fr);
-        gap: 12px;
-        margin-bottom: 18px;
+        gap: 14px;
+        margin-bottom: 20px;
     }
 
-    .metric-box {
-        background: rgba(30, 41, 59, 0.45);
-        border: 1px solid rgba(255, 255, 255, 0.06);
-        border-radius: 10px;
-        padding: 14px 16px;
-        text-align: left;
+    .kpi-tile {
+        background: rgba(18, 22, 34, 0.7);
+        border: 1px solid rgba(255, 255, 255, 0.08);
+        border-radius: 12px;
+        padding: 16px 18px;
+        backdrop-filter: blur(12px);
     }
 
-    .metric-box-title {
+    .kpi-label {
         font-size: 0.75rem;
-        color: #94A3B8;
+        color: #94a3b8;
         font-weight: 600;
         text-transform: uppercase;
         letter-spacing: 0.05em;
-        margin-bottom: 4px;
+        margin-bottom: 6px;
     }
 
-    .metric-box-val {
-        font-size: 1.45rem;
-        font-weight: 700;
-        color: #F8FAFC;
+    .kpi-value {
+        font-size: 1.5rem;
+        font-weight: 800;
         font-family: 'JetBrains Mono', monospace;
     }
 
-    /* Evidence Box */
-    .evidence-item {
-        background: rgba(15, 23, 42, 0.5);
-        border: 1px solid rgba(255, 255, 255, 0.06);
-        border-radius: 8px;
-        padding: 14px;
-        margin-bottom: 12px;
+    /* Inputs & Selectboxes */
+    .stSelectbox div[data-baseweb="select"] {
+        background: rgba(0, 0, 0, 0.3) !important;
+        border: 1px solid rgba(255, 255, 255, 0.1) !important;
+        border-radius: 12px !important;
     }
 
-    /* Tab Polish */
+    .stTextArea textarea {
+        background: rgba(0, 0, 0, 0.3) !important;
+        border: 1px solid rgba(255, 255, 255, 0.1) !important;
+        border-radius: 12px !important;
+        color: #f1f5f9 !important;
+    }
+
+    /* Primary Action Button (ShortLink-Service .btn-primary) */
+    .stButton > button {
+        background: linear-gradient(135deg, #4f46e5 0%, #4338ca 100%) !important;
+        color: white !important;
+        font-weight: 600 !important;
+        border: none !important;
+        border-radius: 12px !important;
+        padding: 12px 24px !important;
+        box-shadow: 0 10px 25px -5px rgba(79, 70, 229, 0.4) !important;
+        transition: all 0.2s ease !important;
+    }
+    .stButton > button:hover {
+        background: linear-gradient(135deg, #6366f1 0%, #4f46e5 100%) !important;
+        transform: translateY(-1px) !important;
+        box-shadow: 0 12px 28px -5px rgba(99, 102, 241, 0.5) !important;
+    }
+
+    /* Tabs Styling */
     .stTabs [data-baseweb="tab-list"] {
         gap: 8px;
-        border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+        border-bottom: 1px solid rgba(255, 255, 255, 0.08);
         padding-bottom: 6px;
     }
 
     .stTabs [data-baseweb="tab"] {
-        border-radius: 8px;
+        border-radius: 10px;
         padding: 8px 18px;
         font-weight: 600;
-        color: #94A3B8;
+        color: #94a3b8;
         background: transparent;
         border: none;
     }
 
     .stTabs [aria-selected="true"] {
-        background: rgba(56, 189, 248, 0.15) !important;
-        color: #38BDF8 !important;
-        border: 1px solid rgba(56, 189, 248, 0.35) !important;
-    }
-
-    /* Sidebar buttons */
-    .stButton > button {
-        background: linear-gradient(135deg, #0284C7 0%, #2563EB 100%) !important;
-        color: white !important;
-        font-weight: 600 !important;
-        border: none !important;
-        border-radius: 8px !important;
-        padding: 10px 20px !important;
-        box-shadow: 0 4px 14px rgba(37, 99, 235, 0.35) !important;
-        transition: transform 0.1s ease !important;
-    }
-    .stButton > button:hover {
-        transform: translateY(-1px) !important;
+        background: rgba(99, 102, 241, 0.18) !important;
+        color: #a5b4fc !important;
+        border: 1px solid rgba(99, 102, 241, 0.4) !important;
     }
 </style>
 """, unsafe_allow_html=True)
 
 
 @st.cache_resource(show_spinner=False)
-def get_pipeline(provider: str, api_key: str):
-    return MedVerifyPipeline(llm_provider=provider, api_key=api_key)
+def load_medverify_pipeline():
+    """Initializes the pipeline once and caches it in memory."""
+    return MedVerifyPipeline()
 
 
-# --- SIDEBAR ---
+# --- SIDEBAR (ShortLink Obsidian Panel) ---
 with st.sidebar:
     st.markdown("""
-    <div style="display: flex; align-items: center; gap: 10px; margin-bottom: 14px;">
-        <span style="font-size: 2rem;">🩺</span>
+    <div style="display: flex; align-items: center; gap: 12px; margin-bottom: 12px;">
+        <span style="font-size: 2.2rem;">🩺</span>
         <div>
-            <div style="font-weight: 700; font-size: 1.15rem; color: #FFFFFF;">MedVerify</div>
-            <div style="font-size: 0.75rem; color: #38BDF8; font-weight: 500;">CLINICAL RAG WORKBENCH</div>
+            <div style="font-weight: 800; font-size: 1.25rem; color: #FFFFFF; letter-spacing: -0.01em;">MedVerify</div>
+            <div style="font-size: 0.72rem; color: #818cf8; font-weight: 600; letter-spacing: 0.05em;">CLINICAL RAG WORKBENCH</div>
         </div>
     </div>
     """, unsafe_allow_html=True)
     st.divider()
 
-    st.markdown("##### ⚙️ LLM Runtime Configuration")
+    st.markdown("##### ⚙️ LLM Runtime Engine")
     provider = st.selectbox(
-        "Engine Mode",
+        "Execution Mode",
         ["mock", "gemini", "openai"],
         format_func=lambda x: {
-            "mock": "⚡ Zero-Setup Demo (Local Mock)",
+            "mock": "⚡ Zero-Setup Demo (Local Neural)",
             "gemini": "✨ Google Gemini API (gemini-2.5-flash)",
             "openai": "🤖 OpenAI API (gpt-4o-mini)"
         }[x]
@@ -231,7 +290,7 @@ with st.sidebar:
         )
 
     st.divider()
-    st.markdown("##### 🧪 Clinical Test Cases (PubMedQA)")
+    st.markdown("##### 🧪 Select Clinical Benchmark")
 
     sample_queries = [
         "Does Metformin reduce cardiovascular mortality in patients with chronic kidney disease?",
@@ -242,45 +301,50 @@ with st.sidebar:
         "In a diabetic patient with eGFR of 35 mL/min and a history of atrial fibrillation, can Metformin and Apixaban be co-administered safely?"
     ]
 
-    selected_sample = st.selectbox("Preset Question:", sample_queries)
-    custom_query = st.text_area("Or input query:", value=selected_sample, height=85)
+    selected_sample = st.selectbox("Clinical Scenario:", sample_queries)
+    custom_query = st.text_area("Question to Analyze:", value=selected_sample, height=85)
 
     execute_btn = st.button("🚀 Run Cognitive Pipeline", use_container_width=True)
 
     st.markdown("""
-    <div style="font-size: 0.76rem; color: #64748B; margin-top: 20px; line-height: 1.4;">
-        <strong>Datasets:</strong> PubMedQA (Expert-labeled)<br>
-        <strong>Reranker:</strong> Cross-Encoder MiniLM<br>
-        <strong>Verifier:</strong> NLI DeBERTa Proposition Engine
+    <div style="font-size: 0.76rem; color: #64748B; margin-top: 24px; line-height: 1.5;">
+        <div style="font-weight: 600; color: #94A3B8; margin-bottom: 4px;">ACTIVE GUARDRAILS:</div>
+        • <strong>Routing:</strong> Dynamic Complexity Gate<br>
+        • <strong>Reranker:</strong> Neural Cross-Encoder<br>
+        • <strong>Auditor:</strong> Claim-Level NLI Verifier<br>
+        • <strong>Corpus:</strong> PubMedQA Clinical Trials
     </div>
     """, unsafe_allow_html=True)
 
 
-# --- HERO HEADER ---
+# --- HERO SECTION ---
 st.markdown("""
-<div class="hero-badge">
-    <div class="pulse-dot"></div>
-    Adaptive Guardrail System Active
+<div class="status-badge">
+    <div class="pulsing-dot"></div>
+    Adaptive Guardrail System Active • Latency Optimized
 </div>
-<div class="hero-title">MedVerify Clinical Copilot</div>
-<div class="hero-subtitle">
-    Evidence-grounded clinical decision support with dynamic retrieval gating, cross-encoder neural reranking, and proposition-level hallucination verification.
+<div style="font-size: 2.4rem;" class="text-gradient">MedVerify Clinical Copilot</div>
+<div style="font-size: 0.98rem; color: #94a3b8; margin-bottom: 24px; line-height: 1.5;">
+    Evidence-grounded medical decision support with adaptive retrieval gating, neural cross-encoder reranking, and proposition-level hallucination verification.
 </div>
 """, unsafe_allow_html=True)
 
 tab1, tab2, tab3 = st.tabs([
     "📊 Live Copilot & Observability",
     "🔬 3-Way Baseline Benchmark (No-RAG vs Fixed vs MedVerify)",
-    "📖 Architecture & Research Specification"
+    "📖 Architecture & Verification Spec"
 ])
 
 # Initialize Pipeline
-with st.spinner("Initializing MedVerify Hybrid Engine & Vector Index..."):
-    pipeline = get_pipeline(provider=provider, api_key=api_key)
+pipeline = load_medverify_pipeline()
+if provider != pipeline.generator.provider or (api_key and api_key != pipeline.generator.api_key):
+    pipeline.generator.provider = provider
+    pipeline.generator.api_key = api_key
 
+# Run or Load Results
 if "analysis_result" not in st.session_state or execute_btn:
     query_to_run = custom_query if custom_query.strip() else selected_sample
-    with st.spinner("Executing: Routing Gate ➔ Hybrid Retrieval ➔ Neural Rerank ➔ Clinical Synthesis ➔ NLI Verification..."):
+    with st.spinner("Executing MedVerify cognitive pipeline..."):
         st.session_state.analysis_result = pipeline.run_adaptive_pipeline(query_to_run)
         st.session_state.benchmark_result = pipeline.run_baseline_comparison(query_to_run)
 
@@ -288,51 +352,53 @@ res = st.session_state.analysis_result
 bench = st.session_state.benchmark_result
 
 
-# --- TAB 1: COPILOT VIEW ---
+# --- TAB 1: COPILOT & OBSERVABILITY ---
 with tab1:
-    # Top KPI Metrics Row
+    # 4 Top KPI Metric Cards (Obsidian Glass)
     route_name = res["routing"]["route"].replace("_", " ")
     faith_pct = int(res["audit_result"]["faithfulness_score"] * 100)
     saved_pct = res["cost_savings"]["percentage_tokens_saved"]
     latency_sec = res["total_execution_time_s"]
 
     st.markdown(f"""
-    <div class="metric-grid">
-        <div class="metric-box">
-            <div class="metric-box-title">Adaptive Route</div>
-            <div class="metric-box-val" style="color: #38BDF8;">{route_name}</div>
+    <div class="kpi-grid">
+        <div class="kpi-tile">
+            <div class="kpi-label">1. Adaptive Decision</div>
+            <div class="kpi-value" style="color: #818cf8;">{route_name}</div>
         </div>
-        <div class="metric-box">
-            <div class="metric-box-title">Faithfulness Score</div>
-            <div class="metric-box-val" style="color: {'#34D399' if faith_pct >= 80 else '#FBBF24'};">{faith_pct}%</div>
+        <div class="kpi-tile">
+            <div class="kpi-label">2. Faithfulness Score</div>
+            <div class="kpi-value" style="color: {'#34D399' if faith_pct >= 70 else '#FBBF24'};">{faith_pct}%</div>
         </div>
-        <div class="metric-box">
-            <div class="metric-box-title">Tokens Saved vs Fixed</div>
-            <div class="metric-box-val" style="color: #A78BFA;">{saved_pct}%</div>
+        <div class="kpi-tile">
+            <div class="kpi-label">3. Tokens Saved vs Fixed</div>
+            <div class="kpi-value" style="color: #c084fc;">{saved_pct}%</div>
         </div>
-        <div class="metric-box">
-            <div class="metric-box-title">Total Latency</div>
-            <div class="metric-box-val" style="color: #F8FAFC;">{latency_sec}s</div>
+        <div class="kpi-tile">
+            <div class="kpi-label">4. End-to-End Latency</div>
+            <div class="kpi-value" style="color: #f1f5f9;">{latency_sec}s</div>
         </div>
     </div>
     """, unsafe_allow_html=True)
 
     col_left, col_right = st.columns([1.15, 0.85], gap="large")
 
-    # LEFT COLUMN: Doctor's Clinical View
+    # LEFT COLUMN: Doctor's View
     with col_left:
         st.markdown("""
         <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 8px;">
-            <span style="font-weight: 700; font-size: 1.1rem; color: #FFFFFF;">📋 Clinical Synthesis</span>
-            <span style="font-size: 0.75rem; color: #94A3B8;">Proposition-Level Verification</span>
+            <span style="font-weight: 700; font-size: 1.15rem; color: #FFFFFF;">📋 Verified Clinical Synthesis</span>
+            <span style="font-size: 0.76rem; color: #818cf8; background: rgba(99,102,241,0.12); padding: 3px 10px; border-radius: 9999px; border: 1px solid rgba(99,102,241,0.3);">
+                Claim-Level NLI Verified
+            </span>
         </div>
         """, unsafe_allow_html=True)
 
         highlighted_html = render_claim_highlighted_html(res["audit_result"]["claim_audits"])
         st.markdown(f"""
-        <div class="glass-card" style="border-left: 4px solid #38BDF8;">
-            <div style="font-size: 0.82rem; color: #94A3B8; margin-bottom: 12px; font-weight: 600;">
-                QUERY: <span style="color: #F1F5F9;">{res['query']}</span>
+        <div class="glass-panel" style="border-left: 4px solid #6366f1 !important;">
+            <div style="font-size: 0.82rem; color: #94A3B8; margin-bottom: 14px; font-weight: 600;">
+                QUERY: <span style="color: #F8FAFC;">{res['query']}</span>
             </div>
             {highlighted_html}
         </div>
@@ -341,7 +407,7 @@ with tab1:
         if res["audit_result"]["has_hallucination"]:
             st.error("🛡️ **Guardrail Intervention:** MedVerify identified ungrounded or contradicted claims in the preliminary synthesis and applied self-correction.")
 
-        # Evidence Dossier
+        # Evidence Drawer
         with st.expander(f"📚 Cited PubMed Evidence Dossier ({len(res['reranked_docs'])} studies retained)", expanded=True):
             if res["reranked_docs"]:
                 for i, doc in enumerate(res["reranked_docs"], start=1):
@@ -350,20 +416,20 @@ with tab1:
                     delta_str = f"+{delta}" if delta > 0 else f"{delta}"
 
                     st.markdown(f"""
-                    <div class="evidence-item">
+                    <div class="glass-card" style="margin-bottom: 12px;">
                         <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 6px;">
-                            <span style="font-weight: 700; color: #38BDF8; font-size: 0.92rem;">
-                                Reference [{i}] • PMID {doc['pmid']}
+                            <span style="font-weight: 700; color: #818cf8; font-size: 0.92rem;">
+                                Reference [{i}] • PMID: {doc['pmid']}
                             </span>
-                            <span style="font-size: 0.75rem; background: rgba(255,255,255,0.06); padding: 3px 8px; border-radius: 4px; font-family: monospace;">
-                                Rerank Score: <strong>{doc.get('raw_rerank_score', 0):.3f}</strong> 
-                                (<span style="color: {delta_color}; font-weight: 600;">Rank {delta_str}</span>)
+                            <span style="font-size: 0.75rem; background: rgba(255,255,255,0.06); padding: 3px 8px; border-radius: 6px; font-family: monospace;">
+                                Cross-Encoder Score: <strong>{doc.get('raw_rerank_score', 0):.3f}</strong> 
+                                (<span style="color: {delta_color}; font-weight: 700;">Rank {delta_str}</span>)
                             </span>
                         </div>
                         <div style="font-size: 0.88rem; font-weight: 600; color: #E2E8F0; margin-bottom: 6px;">
                             {doc['question']}
                         </div>
-                        <div style="font-size: 0.82rem; color: #94A3B8; line-height: 1.55; white-space: pre-line;">
+                        <div style="font-size: 0.82rem; color: #94A3B8; line-height: 1.6; white-space: pre-line;">
                             {doc['content'][:360]}...
                         </div>
                     </div>
@@ -373,51 +439,51 @@ with tab1:
 
     # RIGHT COLUMN: Observability Telemetry
     with col_right:
-        st.markdown('<div style="font-weight: 700; font-size: 1.1rem; color: #FFFFFF; margin-bottom: 8px;">🛡️ Real-Time Observability</div>', unsafe_allow_html=True)
+        st.markdown('<div style="font-weight: 700; font-size: 1.15rem; color: #FFFFFF; margin-bottom: 8px;">🛡️ Real-Time Telemetry Inspector</div>', unsafe_allow_html=True)
 
-        # 1. Routing Card
+        # 1. Routing Gate
         r_info = res["routing"]
         st.markdown(f"""
-        <div class="glass-card" style="padding: 14px 16px; margin-bottom: 14px;">
-            <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 6px;">
-                <span style="font-size: 0.8rem; font-weight: 700; color: #38BDF8; text-transform: uppercase;">1. Adaptive Routing Gate</span>
+        <div class="glass-panel" style="padding: 16px 18px; margin-bottom: 16px;">
+            <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 8px;">
+                <span style="font-size: 0.8rem; font-weight: 700; color: #818cf8; text-transform: uppercase;">1. Adaptive Routing Gate</span>
                 <span style="font-size: 0.75rem; color: #94A3B8; font-family: monospace;">{r_info['decision_latency_ms']} ms</span>
             </div>
-            <div style="font-size: 0.84rem; color: #CBD5E1; margin-bottom: 8px;">
+            <div style="font-size: 0.85rem; color: #CBD5E1; margin-bottom: 8px; line-height: 1.5;">
                 {r_info['reasoning']}
             </div>
-            <div style="font-size: 0.78rem; color: #94A3B8; margin-bottom: 4px;">Gate Confidence: <strong>{int(r_info['confidence']*100)}%</strong></div>
+            <div style="font-size: 0.78rem; color: #94A3B8;">Confidence: <strong style="color: #6ee7b7;">{int(r_info['confidence']*100)}%</strong></div>
         </div>
         """, unsafe_allow_html=True)
 
-        # 2. Reranking Chart
+        # 2. Neural Reranker Shift Chart
         st.markdown("""
-        <div class="glass-card" style="padding: 14px 16px; margin-bottom: 14px;">
-            <div style="font-size: 0.8rem; font-weight: 700; color: #A78BFA; text-transform: uppercase; margin-bottom: 8px;">
+        <div class="glass-panel" style="padding: 16px 18px; margin-bottom: 16px;">
+            <div style="font-size: 0.8rem; font-weight: 700; color: #c084fc; text-transform: uppercase; margin-bottom: 8px;">
                 2. Cross-Encoder Rank-Shift Delta
             </div>
         """, unsafe_allow_html=True)
         if res["rerank_telemetry"].get("rank_shifts"):
             fig_rerank = create_rank_shift_chart(res["rerank_telemetry"]["rank_shifts"])
             st.plotly_chart(fig_rerank, use_container_width=True)
-            st.caption(f"Retained top {res['rerank_telemetry']['candidates_retained']} chunks; dropped {res['rerank_telemetry']['candidates_pruned']} low-scoring distractor abstracts.")
+            st.caption(f"Retained top {res['rerank_telemetry']['candidates_retained']} chunks; dropped {res['rerank_telemetry']['candidates_pruned']} distractor chunks.")
         else:
-            st.caption("Direct Answer route active. Cross-Encoder bypassed to save computation.")
+            st.caption("Direct Answer route active. Cross-Encoder bypassed to save compute.")
         st.markdown("</div>", unsafe_allow_html=True)
 
         # 3. Latency Waterfall Chart
         st.markdown("""
-        <div class="glass-card" style="padding: 14px 16px; margin-bottom: 14px;">
-            <div style="font-size: 0.8rem; font-weight: 700; color: #34D399; text-transform: uppercase; margin-bottom: 8px;">
-                3. End-to-End Latency Breakdown
+        <div class="glass-panel" style="padding: 16px 18px; margin-bottom: 16px;">
+            <div style="font-size: 0.8rem; font-weight: 700; color: #34d399; text-transform: uppercase; margin-bottom: 8px;">
+                3. End-to-End Latency Waterfall
             </div>
         """, unsafe_allow_html=True)
         fig_waterfall = create_latency_waterfall_chart(res["latency_waterfall"])
         st.plotly_chart(fig_waterfall, use_container_width=True)
         st.markdown("</div>", unsafe_allow_html=True)
 
-        # 4. Proposition Audit Table
-        with st.expander("📋 Proposition Audit Table (NLI Scores)"):
+        # 4. Detailed Claim Audit Table
+        with st.expander("📋 Proposition Audit Breakdown (NLI)"):
             audit_df = pd.DataFrame(res["audit_result"]["claim_audits"])[["claim", "label", "confidence", "cited_pmid"]]
             st.dataframe(audit_df, use_container_width=True)
 
@@ -435,9 +501,9 @@ with tab2:
 
     with col1:
         st.markdown(f"""
-        <div class="glass-card" style="border-top: 3px solid #64748B;">
-            <div style="font-weight: 700; font-size: 1rem; color: #94A3B8; margin-bottom: 12px;">1️⃣ No-RAG (Parametric)</div>
-            <div style="font-size: 0.85rem; line-height: 2;">
+        <div class="glass-panel" style="border-top: 3px solid #64748B !important;">
+            <div style="font-weight: 700; font-size: 1.05rem; color: #94A3B8; margin-bottom: 12px;">1️⃣ No-RAG (Parametric)</div>
+            <div style="font-size: 0.86rem; line-height: 2.1;">
                 <div>Faithfulness: <strong style="color: #FB7185;">{int(b_no['faithfulness']*100)}%</strong></div>
                 <div>Hallucinated Claims: <strong>{b_no['hallucinations_detected']}</strong></div>
                 <div>Tokens Consumed: <strong>{b_no['total_tokens']}</strong></div>
@@ -451,9 +517,9 @@ with tab2:
 
     with col2:
         st.markdown(f"""
-        <div class="glass-card" style="border-top: 3px solid #F59E0B;">
-            <div style="font-weight: 700; font-size: 1rem; color: #FBBF24; margin-bottom: 12px;">2️⃣ Fixed-RAG (Naive Top-5)</div>
-            <div style="font-size: 0.85rem; line-height: 2;">
+        <div class="glass-panel" style="border-top: 3px solid #F59E0B !important;">
+            <div style="font-weight: 700; font-size: 1.05rem; color: #FBBF24; margin-bottom: 12px;">2️⃣ Fixed-RAG (Naive Top-5)</div>
+            <div style="font-size: 0.86rem; line-height: 2.1;">
                 <div>Faithfulness: <strong style="color: #FBBF24;">{int(b_fix['faithfulness']*100)}%</strong></div>
                 <div>Hallucinated Claims: <strong>{b_fix['hallucinations_detected']}</strong></div>
                 <div>Tokens Consumed: <strong style="color: #FB7185;">{b_fix['total_tokens']} (Highest)</strong></div>
@@ -467,12 +533,12 @@ with tab2:
 
     with col3:
         st.markdown(f"""
-        <div class="glass-card" style="border-top: 3px solid #38BDF8;">
-            <div style="font-weight: 700; font-size: 1rem; color: #38BDF8; margin-bottom: 12px;">3️⃣ MedVerify (Adaptive + Guardrail) 🏆</div>
-            <div style="font-size: 0.85rem; line-height: 2;">
+        <div class="glass-panel" style="border-top: 3px solid #6366f1 !important;">
+            <div style="font-weight: 700; font-size: 1.05rem; color: #818cf8; margin-bottom: 12px;">3️⃣ MedVerify (Adaptive) 🏆</div>
+            <div style="font-size: 0.86rem; line-height: 2.1;">
                 <div>Faithfulness: <strong style="color: #34D399;">{int(b_med['faithfulness']*100)}% (Highest)</strong></div>
                 <div>Hallucinated Claims: <strong style="color: #34D399;">{b_med['hallucinations_detected']} (Protected)</strong></div>
-                <div>Tokens Consumed: <strong style="color: #38BDF8;">{b_med['total_tokens']} (Saved {b_med['tokens_saved_pct']}%)</strong></div>
+                <div>Tokens Consumed: <strong style="color: #818cf8;">{b_med['total_tokens']} (Saved {b_med['tokens_saved_pct']}%)</strong></div>
                 <div>End-to-End Latency: <strong>{b_med['latency_s']}s</strong></div>
                 <div>Retrieved Passages: <strong>{b_med['retrieved_docs_count']} (Pruned)</strong></div>
             </div>
@@ -491,7 +557,7 @@ with tab2:
     st.table(pd.DataFrame(comparison_data))
 
 
-# --- TAB 3: TECHNICAL SPEC ---
+# --- TAB 3: SPEC & AUDIT ---
 with tab3:
     st.markdown("""
     ### 📖 MedVerify Technical Architecture

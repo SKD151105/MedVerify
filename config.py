@@ -20,6 +20,12 @@ DATA_DIR.mkdir(exist_ok=True)
 CHROMA_PERSIST_DIR.mkdir(exist_ok=True)
 LOGS_DIR.mkdir(exist_ok=True)
 
+# Set HuggingFace Cache to D: drive (C: drive is out of disk space)
+HF_CACHE_DIR = DATA_DIR / "hf_cache"
+HF_CACHE_DIR.mkdir(exist_ok=True)
+os.environ["HF_HOME"] = str(HF_CACHE_DIR)
+os.environ["TRANSFORMERS_CACHE"] = str(HF_CACHE_DIR)
+
 # Datasets
 PUBMEDQA_FILE = DATA_DIR / "pubmedqa_labeled.json"
 SAMPLE_DATA_FILE = DATA_DIR / "sample_data.json"
