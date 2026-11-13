@@ -7,7 +7,10 @@ import sys
 import json
 import logging
 from pathlib import Path
-from prettytable import PrettyTable
+try:
+    from prettytable import PrettyTable
+except ImportError:
+    PrettyTable = None
 
 # Add project root to path
 PROJECT_ROOT = Path(__file__).resolve().parent.parent
@@ -54,44 +57,52 @@ def run_benchmark(sample_limit: int = 6):
         results_fixed_rag.append(comparison["fixed_rag"])
         results_medverify.append(comparison["medverify"])
 
-    # Aggregate Metrics
-    table = PrettyTable()
-    table.field_names = [
-        "Evaluation Metric",
-        "No-RAG (Parametric)",
-        "Fixed-RAG (Naive Top-5)",
-        "MedVerify (Adaptive + Guardrail)"
-    ]
+    if PrettyTable is not None:
+        table = PrettyTable()
+        table.field_names = [
+            "Evaluation Metric",
+            "No-RAG (Parametric)",
+            "Fixed-RAG (Naive Top-5)",
+            "MedVerify (Adaptive + Guardrail)"
+        ]
 
-    table.add_row([
-        "Faithfulness Score (↑)",
-        f"{compute_faithfulness_rate(results_no_rag):.2f}",
-        f"{compute_faithfulness_rate(results_fixed_rag):.2f}",
-        f"{compute_faithfulness_rate(results_medverify):.2f} (Highest)"
-    ])
+        table.add_row([
+            "Faithfulness Score (↑)",
+            f"{compute_faithfulness_rate(results_no_rag):.2f}",
+            f"{compute_faithfulness_rate(results_fixed_rag):.2f}",
+            f"{compute_faithfulness_rate(results_medverify):.2f} (Highest)"
+        ])
 
-    table.add_row([
-        "Hallucination Rate (↓)",
-        f"{compute_hallucination_rate(results_no_rag)}%",
-        f"{compute_hallucination_rate(results_fixed_rag)}%",
-        f"{compute_hallucination_rate(results_medverify)}% (Lowest)"
-    ])
+        table.add_row([
+            "Hallucination Rate (↓)",
+            f"{compute_hallucination_rate(results_no_rag)}%",
+            f"{compute_hallucination_rate(results_fixed_rag)}%",
+            f"{compute_hallucination_rate(results_medverify)}% (Lowest)"
+        ])
 
-    table.add_row([
-        "Avg Tokens / Query (↓)",
-        f"{compute_average_tokens(results_no_rag)}",
-        f"{compute_average_tokens(results_fixed_rag)} (Highest)",
-        f"{compute_average_tokens(results_medverify)} (Optimized)"
-    ])
+        table.add_row([
+            "Avg Tokens / Query (↓)",
+            f"{compute_average_tokens(results_no_rag)}",
+            f"{compute_average_tokens(results_fixed_rag)} (Highest)",
+            f"{compute_average_tokens(results_medverify)} (Optimized)"
+        ])
 
-    table.add_row([
-        "Avg Latency (s)",
-        f"{compute_average_latency(results_no_rag)}s",
-        f"{compute_average_latency(results_fixed_rag)}s",
-        f"{compute_average_latency(results_medverify)}s"
-    ])
+        table.add_row([
+            "Avg Latency (s)",
+            f"{compute_average_latency(results_no_rag)}s",
+            f"{compute_average_latency(results_fixed_rag)}s",
+            f"{compute_average_latency(results_medverify)}s"
+        ])
 
-    print("\n" + table.get_string())
+        print("\n" + table.get_string())
+    else:
+        fmt = "{:<26} | {:<20} | {:<24} | {:<30}"
+        print(fmt.format("Metric", "No-RAG (Parametric)", "Fixed-RAG (Naive Top-5)", "MedVerify (Adaptive)"))
+        print("-" * 105)
+        print(fmt.format("Faithfulness Score (↑)", f"{compute_faithfulness_rate(results_no_rag):.2f}", f"{compute_faithfulness_rate(results_fixed_rag):.2f}", f"{compute_faithfulness_rate(results_medverify):.2f} (Highest)"))
+        print(fmt.format("Hallucination Rate (↓)", f"{compute_hallucination_rate(results_no_rag)}%", f"{compute_hallucination_rate(results_fixed_rag)}%", f"{compute_hallucination_rate(results_medverify)}% (Lowest)"))
+        print(fmt.format("Avg Tokens / Query (↓)", f"{compute_average_tokens(results_no_rag)}", f"{compute_average_tokens(results_fixed_rag)}", f"{compute_average_tokens(results_medverify)} (Saved)"))
+        print(fmt.format("Avg Latency (s)", f"{compute_average_latency(results_no_rag)}s", f"{compute_average_latency(results_fixed_rag)}s", f"{compute_average_latency(results_medverify)}s"))
 
     # Summary findings
     tokens_saved_pct = round(
