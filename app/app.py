@@ -6,18 +6,31 @@ Streamlit Interactive Application with Real-Time Observability and Guardrails.
 import sys
 from pathlib import Path
 
-# Add project root to path
+# Add project root and app dir to path
 PROJECT_ROOT = Path(__file__).resolve().parent.parent
-sys.path.insert(0, str(PROJECT_ROOT))
+APP_DIR = Path(__file__).resolve().parent
+
+if str(PROJECT_ROOT) not in sys.path:
+    sys.path.insert(0, str(PROJECT_ROOT))
+if str(APP_DIR) not in sys.path:
+    sys.path.insert(0, str(APP_DIR))
 
 import streamlit as st
 import pandas as pd
 from src.pipeline import MedVerifyPipeline
-from app.components.visualizer import (
-    render_claim_highlighted_html,
-    create_latency_waterfall_chart,
-    create_rank_shift_chart
-)
+
+try:
+    from components.visualizer import (
+        render_claim_highlighted_html,
+        create_latency_waterfall_chart,
+        create_rank_shift_chart
+    )
+except ImportError:
+    from app.components.visualizer import (
+        render_claim_highlighted_html,
+        create_latency_waterfall_chart,
+        create_rank_shift_chart
+    )
 
 st.set_page_config(
     page_title="MedVerify | Clinical Evidence Copilot",
