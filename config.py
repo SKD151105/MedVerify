@@ -52,5 +52,10 @@ DEFAULT_GEMINI_MODEL = "gemini-2.5-flash"
 DEFAULT_OPENAI_MODEL = "gpt-4o-mini"
 LLM_TEMPERATURE = 0.1
 
+# Vector Database Settings
+VECTOR_DB_TYPE = os.getenv("VECTOR_DB_TYPE", "hybrid_local") # "hybrid_local", "chroma", or "pinecone"
+PINECONE_API_KEY = os.getenv("PINECONE_API_KEY", "")
+PINECONE_INDEX_NAME = os.getenv("PINECONE_INDEX_NAME", "medverify-pubmedqa")
+
 # Baselines Configuration
 FIXED_RAG_TOP_K = 5           # Naive fixed RAG uses a static top-k without reranking or verification

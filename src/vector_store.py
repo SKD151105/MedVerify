@@ -19,7 +19,13 @@ try:
 except ImportError:
     BM25Okapi = None
 
-from config import DENSE_EMBEDDING_MODEL, CHROMA_PERSIST_DIR
+from config import (
+    DENSE_EMBEDDING_MODEL,
+    CHROMA_PERSIST_DIR,
+    PINECONE_API_KEY,
+    PINECONE_INDEX_NAME,
+    VECTOR_DB_TYPE
+)
 
 logging.basicConfig(level=logging.INFO, format="%(asctime)s [%(levelname)s] %(message)s")
 logger = logging.getLogger(__name__)
@@ -89,7 +95,33 @@ class HybridRetriever:
         return results
 
     def search_dense(self, query: str, top_k: int = 15) -> List[Tuple[Dict[str, Any], float, int]]:
-        """Perform Dense vector search returning (doc, score, rank)."""
+        """Perform Dense vector search returning (doc, score, rank). Supports Local Embeddings & Pinecone."""
+        # Optional Pinecone integration
+        if VECTOR_DB_TYPE == "pinecone" and PINECONE_API_KEY:
+            try:
+                from pinecone import Pinecone
+                pc = Pinecone(api_key=PINECONE_API_KEY)
+                index = pc.Index(PINECONE_INDEX_NAME)
+                # Generate embedding
+                if self.dense_model is not None:
+                    query_emb = self.dense_model.encode([query], normalize_embeddings=True)[0].tolist()
+                    res = index.query(vector=query_emb, top_k=top_k, include_metadata=True)
+                    results = []
+                    for rank, match in enumerate(res.matches, start=1):
+                        doc_id = match.id
+                        doc = self.doc_map.get(doc_id, {
+                            "id": doc_id,
+                            "pmid": match.metadata.get("pmid", "UNKNOWN"),
+                            "question": match.metadata.get("question", ""),
+                            "content": match.metadata.get("content", ""),
+                            "golden_answer": match.metadata.get("golden_answer", "")
+                        })
+                        results.append((doc, float(match.score), rank))
+                    if results:
+                        return results
+            except Exception as e:
+                logger.warning(f"Pinecone query failed ({e}). Falling back to local dense retriever.")
+
         if self.dense_model is None or self.doc_embeddings is None:
             # Fallback to BM25 if dense model is unavailable
             return self.search_bm25(query, top_k=top_k)

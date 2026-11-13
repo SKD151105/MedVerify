@@ -484,8 +484,16 @@ with tab1:
 
         # 4. Detailed Claim Audit Table
         with st.expander("📋 Proposition Audit Breakdown (NLI)"):
-            audit_df = pd.DataFrame(res["audit_result"]["claim_audits"])[["claim", "label", "confidence", "cited_pmid"]]
-            st.dataframe(audit_df, use_container_width=True)
+            audit_records = []
+            for ca in res["audit_result"]["claim_audits"]:
+                audit_records.append({
+                    "Proposition": str(ca["claim"]),
+                    "Verification Label": str(ca["label"]),
+                    "Confidence": f"{int(float(ca['confidence']) * 100)}%",
+                    "Cited PMID": str(ca["cited_pmid"])
+                })
+            audit_df = pd.DataFrame(audit_records)
+            st.dataframe(audit_df)
 
 
 # --- TAB 2: BASELINE BENCHMARK ---
@@ -548,11 +556,36 @@ with tab2:
             st.caption(b_med["answer"])
 
     st.markdown("#### 📊 Consolidated Metric Scorecard")
+    # Benchmark Summary Table with string cast to prevent PyArrow mixed-type error
     comparison_data = {
-        "Metric": ["Faithfulness Score", "Hallucinated Claims", "Tokens Consumed", "Latency (s)", "Retrieved Passages"],
-        "No-RAG": [f"{int(b_no['faithfulness']*100)}%", b_no["hallucinations_detected"], b_no["total_tokens"], f"{b_no['latency_s']}s", b_no["retrieved_docs_count"]],
-        "Fixed-RAG (Naive)": [f"{int(b_fix['faithfulness']*100)}%", b_fix["hallucinations_detected"], b_fix["total_tokens"], f"{b_fix['latency_s']}s", b_fix["retrieved_docs_count"]],
-        "MedVerify (Adaptive)": [f"{int(b_med['faithfulness']*100)}%", b_med["hallucinations_detected"], b_med["total_tokens"], f"{b_med['latency_s']}s", b_med["retrieved_docs_count"]]
+        "Evaluation Metric": [
+            "Factual Faithfulness Score",
+            "Hallucinated Claims Flagged",
+            "Tokens Consumed per Query",
+            "End-to-End Latency",
+            "Retrieved Passages"
+        ],
+        "No-RAG (Parametric)": [
+            f"{int(b_no['faithfulness']*100)}%",
+            str(b_no["hallucinations_detected"]),
+            str(b_no["total_tokens"]),
+            f"{b_no['latency_s']}s",
+            str(b_no["retrieved_docs_count"])
+        ],
+        "Fixed-RAG (Naive Top-5)": [
+            f"{int(b_fix['faithfulness']*100)}%",
+            str(b_fix["hallucinations_detected"]),
+            f"{b_fix['total_tokens']} (Highest)",
+            f"{b_fix['latency_s']}s",
+            f"{b_fix['retrieved_docs_count']} (Blind)"
+        ],
+        "MedVerify (Adaptive)": [
+            f"{int(b_med['faithfulness']*100)}%",
+            f"{b_med['hallucinations_detected']} (Protected)",
+            f"{b_med['total_tokens']} (Saved {b_med['tokens_saved_pct']}%)",
+            f"{b_med['latency_s']}s",
+            f"{b_med['retrieved_docs_count']} (Pruned)"
+        ]
     }
     st.table(pd.DataFrame(comparison_data))
 
