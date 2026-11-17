@@ -217,10 +217,14 @@ $$
 - `NEUTRAL`: General medical knowledge not stated in the retrieved context.
 - `CONTRADICTION`: Conflicts with the trial findings or asserts fabricated statistics.
 
-**Step 3 — Phantom Citation Detection:** Every cited PMID is cross-referenced against the valid PMIDs present in the retrieved evidence set $\mathcal{P}_{\text{retrieved}} = \{\text{PMID}(d) \mid d \in \mathcal{E}\}$:
+**Step 3 — Phantom Citation Detection:** Every cited PMID is cross-referenced against the valid PMIDs present in the retrieved evidence set:
 
 $$
-\text{PhantomCitation}(c_i) = \begin{cases} 1, & \text{if } \text{CitedPMID}(c_i) \neq \emptyset \land \text{CitedPMID}(c_i) \notin \mathcal{P}_{\text{retrieved}} \\ 0, & \text{otherwise} \end{cases}
+\mathcal{P}_{\text{retrieved}} = \{\text{PMID}(d) \mid d \in \mathcal{E}\}
+$$
+
+$$
+\text{PhantomCitation}(c_i) = \mathbb{I}\Big(\text{CitedPMID}(c_i) \neq \emptyset \land \text{CitedPMID}(c_i) \notin \mathcal{P}_{\text{retrieved}}\Big)
 $$
 
 If $\text{PhantomCitation}(c_i) = 1$, the claim is automatically classified as `CONTRADICTION`.
@@ -228,10 +232,10 @@ If $\text{PhantomCitation}(c_i) = 1$, the claim is automatically classified as `
 **Step 4 — Faithfulness Score Calculation:**
 
 $$
-\text{Faithfulness}(A, \mathcal{E}) = \begin{cases} \frac{\sum_{i=1}^{n} \mathbb{I}(\text{NLI}(c_i, \mathcal{E}) = \text{ENTAILMENT})}{n}, & \text{if } \mathcal{E} \neq \emptyset \\ 0.0, & \text{if } \mathcal{E} = \emptyset \text{ (No-RAG / Parametric)} \end{cases}
+\text{Faithfulness}(A, \mathcal{E}) = \frac{1}{n} \sum_{i=1}^{n} \mathbb{I}\Big(\text{NLI}(c_i, \mathcal{E}) = \text{ENTAILMENT}\Big)
 $$
 
-where $\mathbb{I}(\cdot)$ is the indicator function.
+where $n$ is the total claim count. For parametric baseline queries with no external evidence ($\mathcal{E} = \emptyset$, No-RAG), $\text{Faithfulness} = 0.0$.
 
 **Step 5 — Self-Correction Protocol:** If any claim is labeled `CONTRADICTION`, the verifier automatically strips the unverified assertion and appends an auditable guardrail notice to prevent clinical misinformation from reaching the clinician.
 
@@ -316,15 +320,19 @@ $$
 \text{Score}_{\text{BM25}}(D, Q) = \sum_{i=1}^{n} \ln\left(\frac{N - n(q_i) + 0.5}{n(q_i) + 0.5} + 1\right) \cdot \frac{f(q_i, D) \cdot (k_1 + 1)}{f(q_i, D) + k_1 \cdot \left(1 - b + b \cdot \frac{|D|}{\text{avgdl}}\right)}
 $$
 
-*Where $k_1 = 1.5$, $b = 0.75$, $N$ is the corpus size, and $n(q_i)$ is the document frequency of query token $q_i$.*
+Where:
+- $k_1 = 1.5$ (term frequency saturation)
+- $b = 0.75$ (document length penalization)
+- $N$ is the total corpus size
+- $n(q_i)$ is the document frequency of query token $q_i$
 
 ### 2. Reciprocal Rank Fusion (RRF)
 
 $$
-\text{RRF}(d) = \sum_{m \in \{\text{BM25}, \text{Semantic}\}} \frac{1}{k + r_m(d)}, \quad k = 60
+\text{RRF}(d) = \sum_{m \in \{\text{BM25}, \text{Semantic}\}} \frac{1}{k + r_m(d)}
 $$
 
-*Merges heterogeneous sparse and dense rankings into a unified candidate pool without requiring score normalization.*
+Where rank smoothing constant $k = 60$. RRF merges heterogeneous sparse and dense rankings into a unified candidate pool without requiring score normalization.
 
 ### 3. Dynamic Cross-Encoder Pruning & Rank Shift
 
@@ -333,26 +341,40 @@ s_{\text{cross}}(q, d) = P(\text{Relevant} \mid q, d) \in [0.0, 1.0]
 $$
 
 $$
-\mathcal{D}_{\text{retained}} = \text{Top-}k \Big(\{ d \in \mathcal{D}_{\text{candidates}} \mid s_{\text{cross}}(q, d) \ge \tau \}\Big), \quad \tau = 0.25, \; k = 3
+\mathcal{D}_{\text{retained}} = \text{Top-}k \Big(\{ d \in \mathcal{D}_{\text{candidates}} \mid s_{\text{cross}}(q, d) \ge \tau \}\Big)
 $$
 
 $$
 \Delta_{\text{rank}}(d) = r_{\text{initial}}(d) - r_{\text{reranked}}(d)
 $$
 
-*$\Delta_{\text{rank}} > 0$ indicates positive promotion by joint cross-attention over naive lexical search.*
+Where pruning threshold $\tau = 0.25$ and candidate budget $k = 3$. A positive rank shift ($\Delta_{\text{rank}} > 0$) indicates promotion by joint cross-attention over naive lexical search.
 
 ### 4. Claim Decomposition & Faithfulness Score
 
-Let $A$ be decomposed into atomic declarative claims $\mathcal{C}_A = \{c_1, c_2, \dots, c_n\}$. Given evidence context $\mathcal{E}$:
+Let $A$ be decomposed into $n$ atomic declarative claims:
 
 $$
-\text{Faithfulness}(A, \mathcal{E}) = \begin{cases} \frac{1}{n} \sum_{i=1}^{n} \mathbb{I}\Big(\text{NLI}(c_i, \mathcal{E}) = \text{ENTAILMENT}\Big), & \text{if } \mathcal{E} \neq \emptyset \\ 0.0, & \text{if } \mathcal{E} = \emptyset \text{ (No-RAG)} \end{cases}
+\mathcal{C}_A = \{c_1, c_2, \dots, c_n\}
 $$
+
+Given retrieved evidence context $\mathcal{E}$, Faithfulness is computed as the proportion of entailed claims:
+
+$$
+\text{Faithfulness}(A, \mathcal{E}) = \frac{1}{n} \sum_{i=1}^{n} \mathbb{I}\Big(\text{NLI}(c_i, \mathcal{E}) = \text{ENTAILMENT}\Big)
+$$
+
+For parametric baseline evaluation without retrieved evidence ($\mathcal{E} = \emptyset$, No-RAG), $\text{Faithfulness} = 0.0$.
 
 ### 5. Phantom Citation & Hallucination Rate
 
-Let $\mathcal{P}_{\text{retrieved}} = \{\text{PMID}(d) \mid d \in \mathcal{E}\}$. A cited PMID is a phantom citation if it does not originate from $\mathcal{P}_{\text{retrieved}}$:
+Let the set of valid PMIDs present in the retrieved evidence dossier be:
+
+$$
+\mathcal{P}_{\text{retrieved}} = \{\text{PMID}(d) \mid d \in \mathcal{E}\}
+$$
+
+A cited PMID in claim $c_i$ is classified as a phantom citation if it does not originate from $\mathcal{P}_{\text{retrieved}}$:
 
 $$
 \text{PhantomCitation}(c_i) = \mathbb{I}\Big(\text{CitedPMID}(c_i) \neq \emptyset \land \text{CitedPMID}(c_i) \notin \mathcal{P}_{\text{retrieved}}\Big)
