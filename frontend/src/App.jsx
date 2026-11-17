@@ -91,6 +91,15 @@ export default function App() {
 
   const fmtRoute = (s) => s.replace(/_/g, ' ');
 
+  const handleAction = (queryToRun) => {
+    const q = queryToRun !== undefined ? queryToRun : query;
+    if (activeTab === 'benchmark') {
+      handleRunBenchmark(q);
+    } else {
+      handleRunQuery(q);
+    }
+  };
+
   return (
     <div className={`theme-${theme} min-h-screen relative p-4 md:p-6 overflow-x-hidden transition-colors duration-200`}>
       <div className="bg-glow" />
@@ -165,7 +174,7 @@ export default function App() {
             {scenarios.map((sc) => (
               <button
                 key={sc.id}
-                onClick={() => { setQuery(sc.question); handleRunQuery(sc.question); }}
+                onClick={() => { setQuery(sc.question); handleAction(sc.question); }}
                 className={`text-[11px] px-2.5 py-1 rounded-md border transition-all ${
                   query === sc.question
                     ? isLight
@@ -196,7 +205,7 @@ export default function App() {
               type="text"
               value={query}
               onChange={(e) => setQuery(e.target.value)}
-              onKeyDown={(e) => e.key === 'Enter' && handleRunQuery(query)}
+              onKeyDown={(e) => e.key === 'Enter' && handleAction(query)}
               placeholder="Enter clinical question, drug efficacy query, or medical definition…"
               className={`w-full bg-transparent text-sm focus:outline-none ${
                 isLight ? 'text-slate-800 placeholder-slate-400' : 'text-slate-100 placeholder-slate-500'
@@ -204,19 +213,19 @@ export default function App() {
             />
           </div>
           <button
-            onClick={() => handleRunQuery(query)}
-            disabled={loading}
+            onClick={() => handleAction(query)}
+            disabled={activeTab === 'benchmark' ? benchLoading : loading}
             className="btn-primary px-5 py-2 rounded-lg font-semibold text-sm flex items-center justify-center gap-2 shrink-0 disabled:opacity-50"
           >
-            {loading ? (
+            {(activeTab === 'benchmark' ? benchLoading : loading) ? (
               <>
                 <span className="w-3.5 h-3.5 border-2 border-white/30 border-t-white rounded-full animate-spin" />
-                Auditing…
+                {activeTab === 'benchmark' ? 'Benchmarking…' : 'Auditing…'}
               </>
             ) : (
               <>
                 <Zap className="w-3.5 h-3.5 fill-white" />
-                Analyze
+                {activeTab === 'benchmark' ? 'Run Benchmark' : 'Analyze'}
               </>
             )}
           </button>
@@ -547,9 +556,18 @@ export default function App() {
                 }`}
               >
                 <RefreshCw className={`w-3 h-3 ${benchLoading ? 'animate-spin' : ''}`} />
-                {benchLoading ? 'Running…' : 'Re-run on current query'}
+                {benchLoading ? 'Running 3-Way Benchmark…' : 'Re-run on current query'}
               </button>
             </div>
+
+            {benchLoading && (
+              <div className={`p-3 rounded-lg border text-center text-xs flex items-center justify-center gap-2 ${
+                isLight ? 'bg-indigo-50 border-indigo-200 text-indigo-700' : 'bg-indigo-500/10 border-indigo-500/30 text-indigo-300'
+              }`}>
+                <span className="w-3.5 h-3.5 border-2 border-indigo-500 border-t-transparent rounded-full animate-spin" />
+                <span>Running concurrent 3-way evaluation (No-RAG vs Fixed-RAG vs MedVerify)…</span>
+              </div>
+            )}
 
             {/* 3 Cards */}
             <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
