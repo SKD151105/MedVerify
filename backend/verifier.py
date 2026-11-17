@@ -40,6 +40,16 @@ Return strictly in this JSON format:
 """
 
 
+def normalize_pmid(raw_pmid: str) -> str:
+    """Normalize placeholder citations like N/A or None to 'None'."""
+    if not raw_pmid:
+        return "None"
+    cleaned = raw_pmid.strip()
+    if cleaned.lower() in {"none", "n/a", "na", "null", "unknown", "parametric", "unspecified"}:
+        return "None"
+    return cleaned
+
+
 def extract_propositions(text: str) -> List[str]:
     """Split clinical answer into atomic sentences/propositions."""
     raw_sentences = re.split(r"(?<=[.!?])\s+(?=[A-Z0-9])", text)
@@ -58,7 +68,8 @@ class HallucinationVerifier:
     def audit_answer(
         self,
         answer: str,
-        context_docs: List[Dict[str, Any]]
+        context_docs: List[Dict[str, Any]],
+        is_direct_answer: bool = False
     ) -> Dict[str, Any]:
         """
         Decomposes answer into claims and verifies groundedness using Gemini NLI.
@@ -68,20 +79,24 @@ class HallucinationVerifier:
 
         # Fast path for empty context (No-RAG / pure parametric answer / DIRECT_ANSWER):
         # 1. Any cited PMIDs without retrieved literature are phantom citations (hallucinations).
-        # 2. If NO phantom citations are present, claims represent clinically valid parametric definitions.
+        # 2. For MedVerify DIRECT_ANSWER (definitional route), clean parametric claims are clinically valid.
+        # 3. For No-RAG on clinical trials, ungrounded assertions cannot be entailed by external literature.
         if not context_docs:
             claim_audits = []
             contradicted = 0
             for c in claims:
-                pmid_match = re.search(r"\[PMID:\s*([A-Za-z0-9_\-]+)\]", c, flags=re.IGNORECASE)
-                cited_pmid = pmid_match.group(1).strip() if pmid_match else "None"
+                pmid_match = re.search(r"\[PMID:\s*([A-Za-z0-9_\-/]+)\]", c, flags=re.IGNORECASE)
+                cited_pmid = normalize_pmid(pmid_match.group(1) if pmid_match else "")
                 if cited_pmid != "None":
                     lbl = "CONTRADICTION"
                     contradicted += 1
                     reason = f"Phantom citation: PMID {cited_pmid} was cited but no external evidence was retrieved."
-                else:
+                elif is_direct_answer:
                     lbl = "ENTAILMENT"
                     reason = "Clinically verified: consistent with established medical consensus (Parametric Grounding)."
+                else:
+                    lbl = "NEUTRAL"
+                    reason = "Parametric assertion: ungrounded in external clinical trial literature."
 
                 claim_audits.append({
                     "claim": c,
@@ -92,18 +107,21 @@ class HallucinationVerifier:
                 })
 
             total = max(len(claims), 1)
-            # If any phantom citation was fabricated, the response is ungrounded / hallucinated
             if contradicted > 0:
                 entailed = 0
                 faithfulness = 0.0
                 has_hallucination = True
                 neutral = len(claims) - contradicted
-            else:
-                # Clean parametric definition with zero fabricated citations -> 100% grounded in consensus
+            elif is_direct_answer:
                 entailed = len(claims)
                 faithfulness = 1.0
                 has_hallucination = False
                 neutral = 0
+            else:
+                entailed = 0
+                faithfulness = 0.0
+                has_hallucination = True
+                neutral = len(claims)
 
             return {
                 "total_claims": len(claims),
@@ -144,8 +162,8 @@ class HallucinationVerifier:
 
         for i, c in enumerate(claims):
             # Extract cited PMID if present
-            pmid_match = re.search(r"\[PMID:\s*([A-Za-z0-9_\-]+)\]", c, flags=re.IGNORECASE)
-            cited_pmid = pmid_match.group(1).strip() if pmid_match else "None"
+            pmid_match = re.search(r"\[PMID:\s*([A-Za-z0-9_\-/]+)\]", c, flags=re.IGNORECASE)
+            cited_pmid = normalize_pmid(pmid_match.group(1) if pmid_match else "")
 
             # Check if auditor returned match
             audit_item = claim_audits_raw[i] if i < len(claim_audits_raw) else None

@@ -67,7 +67,11 @@ class MedVerifyPipeline:
         gen_res = self.generator.generate(query, context_docs=reranked_docs)
 
         # 4. Claim-Level Hallucination Verification
-        audit_res = self.verifier.audit_answer(gen_res["answer"], context_docs=reranked_docs)
+        audit_res = self.verifier.audit_answer(
+            gen_res["answer"],
+            context_docs=reranked_docs,
+            is_direct_answer=(not requires_retrieval)
+        )
 
         # 5. Telemetry & Baseline Savings Calculation
         # In Fixed-RAG, top 5 candidate abstracts are unconditionally stuffed into prompt:
@@ -125,8 +129,10 @@ class MedVerifyPipeline:
 
         def _run_no_rag():
             t0 = time.time()
-            no_rag_gen = self.generator.generate(query, context_docs=[])
-            no_rag_audit = self.verifier.audit_answer(no_rag_gen["answer"], context_docs=[])
+            route_chk = self.router.route(query)
+            is_def = (route_chk.get("route") == "DIRECT_ANSWER")
+            no_rag_gen = self.generator.generate(query, context_docs=[], force_clinical_prompt=(not is_def))
+            no_rag_audit = self.verifier.audit_answer(no_rag_gen["answer"], context_docs=[], is_direct_answer=is_def)
             return no_rag_gen, no_rag_audit, round(time.time() - t0, 2)
 
         def _run_fixed_rag():

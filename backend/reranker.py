@@ -87,6 +87,12 @@ class CrossReranker:
         above_threshold = [d for d in sorted_docs if d["rerank_score"] >= threshold]
         below_threshold = [d for d in sorted_docs if d["rerank_score"] < threshold]
 
+        # Safety fallback: if retrieval was requested and all docs fell below threshold, keep top-1 best candidate
+        if not above_threshold and sorted_docs:
+            logger.info(f"All candidates scored below {threshold}; retaining top-1 fallback ({sorted_docs[0]['id']}).")
+            above_threshold = [sorted_docs[0]]
+            below_threshold = sorted_docs[1:]
+
         # Log pruned docs
         for doc in below_threshold:
             logger.info(f"Pruned doc {doc['id']} (Score: {doc['rerank_score']:.2f} < Threshold {threshold})")

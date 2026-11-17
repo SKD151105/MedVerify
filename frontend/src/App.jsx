@@ -100,6 +100,17 @@ export default function App() {
     }
   };
 
+  const handleTabSwitch = (tab) => {
+    setActiveTab(tab);
+    const trimmed = query.trim();
+    if (!trimmed) return;
+    if (tab === 'benchmark' && benchmarkResult?.query?.trim() !== trimmed && !benchLoading) {
+      handleRunBenchmark(trimmed);
+    } else if (tab === 'copilot' && result?.query?.trim() !== trimmed && !loading) {
+      handleRunQuery(trimmed);
+    }
+  };
+
   return (
     <div className={`theme-${theme} min-h-screen relative p-4 md:p-6 overflow-x-hidden transition-colors duration-200`}>
       <div className="bg-glow" />
@@ -131,7 +142,7 @@ export default function App() {
 
           <div className={`flex rounded-lg p-0.5 border ${isLight ? 'bg-slate-100 border-slate-200' : 'bg-white/5 border-white/10'}`}>
             <button
-              onClick={() => setActiveTab('copilot')}
+              onClick={() => handleTabSwitch('copilot')}
               className={`px-3 py-1.5 rounded-md text-xs font-semibold transition-all ${
                 activeTab === 'copilot'
                   ? 'bg-indigo-600 text-white shadow-sm'
@@ -141,7 +152,7 @@ export default function App() {
               Copilot
             </button>
             <button
-              onClick={() => setActiveTab('benchmark')}
+              onClick={() => handleTabSwitch('benchmark')}
               className={`px-3 py-1.5 rounded-md text-xs font-semibold transition-all ${
                 activeTab === 'benchmark'
                   ? 'bg-indigo-600 text-white shadow-sm'

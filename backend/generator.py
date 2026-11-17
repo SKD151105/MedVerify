@@ -21,6 +21,14 @@ STRICT CLINICAL RULES:
 4. Do NOT hallucinate dosages, trial end-points, or mortality hazard ratios.
 """
 
+DIRECT_SYSTEM_PROMPT = """You are MedVerify, a clinical medical AI copilot.
+Provide a clear, accurate, concise explanation using established medical and physiological knowledge.
+
+STRICT RULES:
+1. Do NOT include any [PMID: ...] citations, fake PubMed IDs, or [PMID: N/A] tags.
+2. Keep the response factual, clinically accurate, and concise (3 to 5 clear sentences).
+"""
+
 
 class ClinicalGenerator:
     def __init__(self, gemini_client: GeminiClient = None):
@@ -29,7 +37,8 @@ class ClinicalGenerator:
     def generate(
         self,
         query: str,
-        context_docs: List[Dict[str, Any]] = None
+        context_docs: List[Dict[str, Any]] = None,
+        force_clinical_prompt: bool = False
     ) -> Dict[str, Any]:
         """Generate evidence-grounded answer given query and context."""
         start_time = time.time()
@@ -43,9 +52,16 @@ class ClinicalGenerator:
                 abstract = doc.get("abstract", "")
                 evidence_str += f"\n--- Evidence [{i}] (PMID: {pmid}) ---\n{abstract}\n"
             instruction_note = "Provide an evidence-grounded clinical synthesis adhering strictly to the citation format [PMID: ...]:"
+            sys_prompt = SYSTEM_PROMPT
+        elif force_clinical_prompt:
+            # Used for No-RAG clinical trial baseline comparison
+            evidence_str = "No external literature retrieved."
+            instruction_note = "Answer the clinical question concisely."
+            sys_prompt = SYSTEM_PROMPT
         else:
-            evidence_str = "No external literature retrieved. (Direct parametric memory answer mode)."
-            instruction_note = "Synthesize an answer using general medical clinical knowledge. Do NOT invent or cite fake PMIDs."
+            evidence_str = "No external literature retrieved. (Direct parametric definition mode)."
+            instruction_note = "Provide a concise, authoritative clinical definition using established medical knowledge. Do not include any [PMID: ...] tags."
+            sys_prompt = DIRECT_SYSTEM_PROMPT
 
         prompt = (
             f"CLINICAL QUESTION:\n{query}\n\n"
@@ -53,7 +69,7 @@ class ClinicalGenerator:
             f"{instruction_note}"
         )
 
-        res = self.gemini.generate_text(prompt, system_instruction=SYSTEM_PROMPT, temperature=0.1)
+        res = self.gemini.generate_text(prompt, system_instruction=sys_prompt, temperature=0.1)
         latency_ms = round((time.time() - start_time) * 1000, 2)
 
         return {
