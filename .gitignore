@@ -20,8 +20,15 @@ data/hf_cache/
 
 # Environment variables & secrets
 .env
+**/.env
 .env.local
 *.secret
+
+# Node / Frontend
+node_modules/
+**/node_modules/
+dist/
+**/dist/
 
 # IDE & OS
 .vscode/

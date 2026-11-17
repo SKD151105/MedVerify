@@ -1,0 +1,101 @@
+[
+  {
+    "id": "pmid_28491530",
+    "pmid": "28491530",
+    "question": "Does Metformin reduce cardiovascular mortality in patients with chronic kidney disease?",
+    "query_type": "clinical_evidence",
+    "specialty": "Nephrology / Cardiology",
+    "abstract": "BACKGROUND: Metformin is the primary pharmacotherapy for type 2 diabetes mellitus, but concerns regarding lactic acidosis historically restricted its use in chronic kidney disease (CKD).\nMETHODS: Retrospective cohort study of 25,148 diabetic patients with CKD stages 1 to 4 analyzed cardiovascular and all-cause mortality over a 5-year follow-up.\nRESULTS: Metformin users with stage 3 CKD (eGFR 30-59 mL/min/1.73 m2) exhibited a 22% lower risk of cardiovascular mortality (adjusted HR 0.78, 95% CI 0.67-0.91) and a 19% reduction in all-cause mortality compared with non-users. Rates of lactic acidosis did not differ significantly between metformin users and non-users across stage 1 to stage 3b CKD (0.12 vs 0.09 per 1000 person-years, p=0.45).\nCONCLUSIONS: Metformin use is associated with reduced cardiovascular and all-cause mortality in diabetic patients with stage 1-3b CKD without a significant elevation in lactic acidosis risk.",
+    "mesh_terms": ["Metformin", "Chronic Kidney Disease", "Cardiovascular Mortality", "Lactic Acidosis"],
+    "final_decision": "yes",
+    "gold_answer": "Yes. Clinical evidence demonstrates that Metformin reduces cardiovascular mortality by 22% in diabetic patients with stage 1-3b CKD without significantly increasing lactic acidosis risk."
+  },
+  {
+    "id": "pmid_31042891",
+    "pmid": "31042891",
+    "question": "What is the recommended dose adjustment for Apixaban in patients with severe renal impairment?",
+    "query_type": "clinical_evidence",
+    "specialty": "Hematology / Pharmacology",
+    "abstract": "BACKGROUND: Direct oral anticoagulants undergo variable renal elimination. Apixaban is 27% renally cleared, making it a common choice in renal impairment.\nMETHODS: Pharmacokinetic profiles and bleeding outcomes from the ARISTOTLE trial and post-marketing surveillance were reviewed for patients with creatinine clearance < 30 mL/min.\nRESULTS: Standard dosing is 5 mg twice daily. Dose reduction to 2.5 mg twice daily is recommended if patients meet at least two of the following criteria: age >= 80 years, body weight <= 60 kg, or serum creatinine >= 1.5 mg/dL (133 micromol/L). In patients on chronic hemodialysis without these criteria, 5 mg twice daily maintains therapeutic levels, whereas meeting two criteria warrants 2.5 mg twice daily.\nCONCLUSIONS: Dose adjustment of apixaban is guided by the ABC criteria (Age, Body weight, Creatinine) rather than isolated eGFR cutoff alone.",
+    "mesh_terms": ["Apixaban", "Renal Impairment", "Anticoagulants", "Dose Adjustment"],
+    "final_decision": "yes",
+    "gold_answer": "Standard Apixaban dosing is 5 mg twice daily, reduced to 2.5 mg twice daily only if the patient meets at least two of: age >= 80, body weight <= 60 kg, or serum creatinine >= 1.5 mg/dL."
+  },
+  {
+    "id": "pmid_29562180",
+    "pmid": "29562180",
+    "question": "Do preoperative statins reduce the incidence of postoperative atrial fibrillation after coronary artery bypass grafting?",
+    "query_type": "clinical_evidence",
+    "specialty": "Cardiothoracic Surgery",
+    "abstract": "BACKGROUND: Postoperative atrial fibrillation (POAF) occurs in 20-40% of patients undergoing coronary artery bypass grafting (CABG) and increases stroke risk and length of hospital stay.\nMETHODS: A double-blind, randomized controlled trial evaluated 1,922 patients assigned to receive atorvastatin (20 mg/day) or placebo starting 7 days prior to scheduled elective on-pump CABG.\nRESULTS: The incidence of POAF was 21.1% in the atorvastatin group compared to 28.6% in the placebo group (odds ratio 0.67, 95% CI 0.53-0.84, p < 0.001). Preoperative C-reactive protein elevation was significantly attenuated in the statin group.\nCONCLUSIONS: Preoperative statin therapy significantly decreases the incidence of postoperative atrial fibrillation in patients undergoing CABG.",
+    "mesh_terms": ["Statins", "Atorvastatin", "Coronary Artery Bypass", "Postoperative Atrial Fibrillation"],
+    "final_decision": "yes",
+    "gold_answer": "Yes. Preoperative statin therapy significantly decreases the incidence of postoperative atrial fibrillation following CABG (OR 0.67)."
+  },
+  {
+    "id": "pmid_32568471",
+    "pmid": "32568471",
+    "question": "Does routine hydroxychloroquine administration improve clinical recovery in hospitalized COVID-19 patients?",
+    "query_type": "clinical_evidence",
+    "specialty": "Infectious Disease",
+    "abstract": "BACKGROUND: Hydroxychloroquine was hypothesized to exert antiviral and anti-inflammatory effects in severe acute respiratory syndrome coronavirus 2 infection.\nMETHODS: In the RECOVERY trial, 1,561 hospitalized COVID-19 patients were randomized to hydroxychloroquine and 3,155 to usual standard care.\nRESULTS: 28-day mortality was 27.0% in the hydroxychloroquine group and 25.0% in the usual care group (rate ratio 1.09, 95% CI 0.97-1.23, p=0.15). Patients in the hydroxychloroquine group had a longer median duration of hospital stay (16 vs 13 days) and a higher frequency of invasive mechanical ventilation or death (30.7% vs 26.9%).\nCONCLUSIONS: In hospitalized patients with COVID-19, hydroxychloroquine did not result in lower 28-day mortality or improved clinical outcomes compared with standard of care.",
+    "mesh_terms": ["Hydroxychloroquine", "COVID-19", "Mortality", "Randomized Controlled Trial"],
+    "final_decision": "no",
+    "gold_answer": "No. Large-scale randomized trials demonstrated that hydroxychloroquine did not improve 28-day mortality or clinical outcomes in hospitalized COVID-19 patients."
+  },
+  {
+    "id": "pmid_33301246",
+    "pmid": "33301246",
+    "question": "Does SGLT2 inhibitor Empagliflozin reduce cardiovascular death in heart failure with preserved ejection fraction?",
+    "query_type": "clinical_evidence",
+    "specialty": "Cardiology",
+    "abstract": "BACKGROUND: Sodium-glucose cotransporter 2 (SGLT2) inhibitors improve outcomes in heart failure with reduced ejection fraction, but evidence for preserved ejection fraction (HFpEF) was lacking.\nMETHODS: In the EMPEROR-Preserved trial, 5,988 patients with class II-IV heart failure and an ejection fraction > 40% were randomized to empagliflozin (10 mg daily) or placebo.\nRESULTS: Over a median of 26.2 months, the primary composite outcome of cardiovascular death or hospitalization for heart failure occurred in 415 of 2,997 patients (13.8%) in the empagliflozin group and in 511 of 2,991 patients (17.1%) in the placebo group (hazard ratio, 0.79; 95% CI, 0.69 to 0.90; P<0.001). This effect was primarily driven by a 29% lower risk of hospitalization for heart failure.\nCONCLUSIONS: Empagliflozin significantly reduces the combined risk of cardiovascular death or hospitalization for heart failure in patients with HFpEF.",
+    "mesh_terms": ["Empagliflozin", "SGLT2 Inhibitor", "Heart Failure", "HFpEF", "Cardiovascular Death"],
+    "final_decision": "yes",
+    "gold_answer": "Yes. Empagliflozin significantly reduced the composite risk of cardiovascular death or heart failure hospitalization by 21% in patients with HFpEF."
+  },
+  {
+    "id": "pmid_30883058",
+    "pmid": "30883058",
+    "question": "Does Pembrolizumab combined with chemotherapy improve overall survival in untreated metastatic non-small-cell lung cancer?",
+    "query_type": "clinical_evidence",
+    "specialty": "Oncology",
+    "abstract": "BACKGROUND: First-line pembrolizumab monotherapy improves survival in advanced non-small-cell lung cancer (NSCLC) with high PD-L1 expression.\nMETHODS: The KEYNOTE-189 phase 3 trial randomized 616 patients with untreated metastatic non-squamous NSCLC without EGFR or ALK mutations to pemetrexed and platinum chemotherapy plus pembrolizumab or placebo.\nRESULTS: Estimated 12-month overall survival was 69.2% (95% CI, 64.1 to 73.8) in the pembrolizumab-combination group compared with 49.4% (95% CI, 42.1 to 56.2) in the placebo-combination group (hazard ratio for death, 0.49; 95% CI, 0.38 to 0.64; P<0.001). Median progression-free survival was 8.8 months versus 4.9 months.\nCONCLUSIONS: The addition of pembrolizumab to standard chemotherapy significantly prolonged overall survival and progression-free survival in metastatic NSCLC across all PD-L1 categories.",
+    "mesh_terms": ["Pembrolizumab", "Non-Small-Cell Lung Cancer", "Immunotherapy", "Chemotherapy", "Overall Survival"],
+    "final_decision": "yes",
+    "gold_answer": "Yes. Pembrolizumab plus platinum-pemetrexed chemotherapy significantly prolonged overall survival (HR 0.49) in untreated metastatic NSCLC regardless of PD-L1 score."
+  },
+  {
+    "id": "def_001",
+    "pmid": "N/A",
+    "question": "What is essential hypertension?",
+    "query_type": "definitional",
+    "specialty": "General Medicine",
+    "abstract": "Essential hypertension (also termed primary or idiopathic hypertension) is high systemic blood pressure with no identifiable secondary underlying cause. It accounts for 90-95% of adult hypertension cases and is managed by lifestyle modifications and guideline-directed antihypertensive agents such as ACE inhibitors, ARBs, CCBs, or thiazides.",
+    "mesh_terms": ["Hypertension", "Definition"],
+    "final_decision": "direct",
+    "gold_answer": "Essential hypertension is chronic high blood pressure that develops gradually without a known secondary medical etiology, representing 90-95% of all hypertension diagnoses."
+  },
+  {
+    "id": "def_002",
+    "pmid": "N/A",
+    "question": "What is the physiological role of the glomerular filtration rate?",
+    "query_type": "definitional",
+    "specialty": "Physiology",
+    "abstract": "Glomerular filtration rate (GFR) represents the volume of fluid filtered from the renal glomerular capillaries into Bowman's capsule per unit of time. Normal GFR in young adults is 90-120 mL/min/1.73 m2 and serves as the primary index of overall kidney function and staging of chronic kidney disease.",
+    "mesh_terms": ["Glomerular Filtration Rate", "Kidney Function"],
+    "final_decision": "direct",
+    "gold_answer": "GFR measures the rate of plasma filtration through the kidneys into Bowman's capsule, serving as the benchmark diagnostic marker for renal health and CKD staging."
+  },
+  {
+    "id": "multihop_001",
+    "pmid": "COMBINED_28491530_31042891",
+    "question": "In a diabetic patient with eGFR of 35 mL/min and a history of atrial fibrillation, can Metformin and Apixaban be co-administered safely?",
+    "query_type": "multi_hop",
+    "specialty": "Clinical Pharmacology",
+    "abstract": "Metformin can be continued in CKD stage 3a/3b with close renal monitoring and eGFR >= 30 mL/min. Apixaban undergoes 27% renal elimination and requires dose reduction to 2.5 mg BID if creatinine is >= 1.5 mg/dL along with age >= 80 or weight <= 60 kg. No direct pharmacokinetic drug-drug interaction exists between metformin (organic cation transporter substrate) and apixaban (CYP3A4/P-gp substrate).",
+    "mesh_terms": ["Metformin", "Apixaban", "Drug Interaction", "Chronic Kidney Disease"],
+    "final_decision": "yes",
+    "gold_answer": "Yes, Metformin and Apixaban can be co-administered in patients with eGFR of 35 mL/min, provided Metformin is kept under 1000 mg/day with frequent renal monitoring, and Apixaban dose is adjusted if age >= 80 or weight <= 60 kg."
+  }
+]
