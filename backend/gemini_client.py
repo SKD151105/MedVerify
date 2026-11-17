@@ -14,11 +14,12 @@ from config import GEMINI_API_KEY, GEMINI_MODEL
 logging.basicConfig(level=logging.INFO, format="%(asctime)s [%(levelname)s] %(message)s")
 logger = logging.getLogger(__name__)
 
-# Verified ultra-fast active models for this API key
+# Verified ultra-fast active models with healthy quota for this API key
 MODEL_FALLBACKS = [
-    "gemini-3-flash-preview",
     "gemini-3.5-flash-lite",
-    "gemini-flash-lite-latest"
+    "gemini-flash-lite-latest",
+    "gemini-3-flash-preview",
+    "gemini-2.5-flash-lite"
 ]
 
 
