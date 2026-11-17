@@ -42,13 +42,15 @@ class ClinicalGenerator:
                 pmid = doc.get("pmid", "UNKNOWN")
                 abstract = doc.get("abstract", "")
                 evidence_str += f"\n--- Evidence [{i}] (PMID: {pmid}) ---\n{abstract}\n"
+            instruction_note = "Provide an evidence-grounded clinical synthesis adhering strictly to the citation format [PMID: ...]:"
         else:
             evidence_str = "No external literature retrieved. (Direct parametric memory answer mode)."
+            instruction_note = "Synthesize an answer using general medical clinical knowledge. Do NOT invent or cite fake PMIDs."
 
         prompt = (
             f"CLINICAL QUESTION:\n{query}\n\n"
             f"RETRIEVED CLINICAL EVIDENCE:\n{evidence_str}\n\n"
-            f"Provide an evidence-grounded clinical synthesis adhering strictly to the citation format [PMID: ...]:"
+            f"{instruction_note}"
         )
 
         res = self.gemini.generate_text(prompt, system_instruction=SYSTEM_PROMPT, temperature=0.1)

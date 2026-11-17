@@ -66,12 +66,54 @@ class HallucinationVerifier:
         start_time = time.time()
         claims = extract_propositions(answer)
 
-        # Build evidence text
-        evidence_snippets = [
-            f"[PMID: {d.get('pmid', 'N/A')}] {d.get('question', '')} - {d.get('abstract', '')}"
-            for d in context_docs
-        ]
-        evidence_text = "\n\n".join(evidence_snippets) if evidence_snippets else "No external evidence (Direct Answer)."
+        # Fast path for empty context (No-RAG / pure parametric answer):
+        # With zero literature retrieved, by definition 0 claims can be entailed by external evidence.
+        # Any cited PMIDs are pure phantom citations (hallucinations).
+        if not context_docs:
+            claim_audits = []
+            contradicted = 0
+            for c in claims:
+                pmid_match = re.search(r"\[PMID:\s*([A-Za-z0-9_\-]+)\]", c, flags=re.IGNORECASE)
+                cited_pmid = pmid_match.group(1).strip() if pmid_match else "None"
+                if cited_pmid != "None":
+                    lbl = "CONTRADICTION"
+                    contradicted += 1
+                    reason = f"Phantom citation: PMID {cited_pmid} was cited but no external evidence was retrieved."
+                else:
+                    lbl = "NEUTRAL"
+                    reason = "Parametric assertion: ungrounded in external literature."
+
+                claim_audits.append({
+                    "claim": c,
+                    "label": lbl,
+                    "confidence": 0.95,
+                    "cited_pmid": cited_pmid,
+                    "reasoning": reason
+                })
+
+            total = max(len(claims), 1)
+            return {
+                "total_claims": len(claims),
+                "entailed_claims": 0,
+                "neutral_claims": len(claims) - contradicted,
+                "contradicted_claims": contradicted,
+                "faithfulness_score": 0.0,
+                "has_hallucination": True,
+                "claim_audits": claim_audits,
+                "revised_answer": answer,
+                "latency_ms": round((time.time() - start_time) * 1000, 2)
+            }
+
+        # Build evidence text and collect valid PMIDs
+        valid_pmids = set()
+        evidence_snippets = []
+        for d in context_docs:
+            p = str(d.get("pmid", "")).strip().lower()
+            if p:
+                valid_pmids.add(p)
+            evidence_snippets.append(f"[PMID: {d.get('pmid', 'N/A')}] {d.get('question', '')} - {d.get('abstract', '')}")
+
+        evidence_text = "\n\n".join(evidence_snippets)
 
         claims_formatted = "\n".join([f"[{i}] {c}" for i, c in enumerate(claims, start=1)])
 
@@ -90,7 +132,7 @@ class HallucinationVerifier:
         for i, c in enumerate(claims):
             # Extract cited PMID if present
             pmid_match = re.search(r"\[PMID:\s*([A-Za-z0-9_\-]+)\]", c, flags=re.IGNORECASE)
-            cited_pmid = pmid_match.group(1) if pmid_match else "None"
+            cited_pmid = pmid_match.group(1).strip() if pmid_match else "None"
 
             # Check if auditor returned match
             audit_item = claim_audits_raw[i] if i < len(claim_audits_raw) else None
@@ -102,9 +144,30 @@ class HallucinationVerifier:
                 reason = audit_item.get("reasoning", "Verified against abstract.")
             else:
                 # Heuristic fallback
-                lbl = "ENTAILMENT" if cited_pmid != "None" else "NEUTRAL"
-                conf = 0.85
-                reason = "Citation verified."
+                if not context_docs:
+                    lbl = "NEUTRAL"
+                    conf = 0.80
+                    reason = "No context provided to verify claim."
+                elif cited_pmid != "None" and cited_pmid.lower() in valid_pmids:
+                    lbl = "ENTAILMENT"
+                    conf = 0.85
+                    reason = f"Verified via cited PMID {cited_pmid}."
+                else:
+                    lbl = "NEUTRAL"
+                    conf = 0.75
+                    reason = "General assertion."
+
+            # GUARD: Phantom citation detection
+            # If a model cited a PMID that was NOT in the retrieved evidence, it's a fabricated citation
+            if cited_pmid != "None" and cited_pmid.lower() not in valid_pmids:
+                lbl = "CONTRADICTION"
+                conf = 0.98
+                reason = f"Hallucination: Cited PMID {cited_pmid} does not exist in retrieved evidence."
+
+            # GUARD: In No-RAG (zero context docs), claims cannot be entailed by context
+            if not context_docs and lbl == "ENTAILMENT":
+                lbl = "NEUTRAL"
+                reason = "Parametric generation: ungrounded in external evidence."
 
             if lbl == "ENTAILMENT":
                 entailed += 1
