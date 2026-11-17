@@ -82,14 +82,22 @@ class CrossReranker:
         # Sort descending by rerank score
         sorted_docs = sorted(scored_docs, key=lambda x: x["rerank_score"], reverse=True)
 
+        # Fix: filter by threshold FIRST, then take top_k — prevents discarding
+        # high-scoring docs that happen to sit beyond the initial slice boundary.
+        above_threshold = [d for d in sorted_docs if d["rerank_score"] >= threshold]
+        below_threshold = [d for d in sorted_docs if d["rerank_score"] < threshold]
+
+        # Log pruned docs
+        for doc in below_threshold:
+            logger.info(f"Pruned doc {doc['id']} (Score: {doc['rerank_score']:.2f} < Threshold {threshold})")
+
+        # Take top_k from those that passed the threshold
+        retained_docs_raw = above_threshold[:top_k]
+
         retained_docs = []
         rank_shifts = []
 
-        for new_rank, doc in enumerate(sorted_docs[:top_k], start=1):
-            if doc["rerank_score"] < threshold:
-                logger.info(f"Pruned doc {doc['id']} (Score: {doc['rerank_score']:.2f} < Threshold {threshold})")
-                continue
-
+        for new_rank, doc in enumerate(retained_docs_raw, start=1):
             doc["reranked_rank"] = new_rank
             delta = doc["initial_rank"] - new_rank  # Positive = jumped UP
             doc["rank_delta"] = delta
@@ -104,10 +112,12 @@ class CrossReranker:
             })
             retained_docs.append(doc)
 
+        # Accurate telemetry: count ALL docs that didn't make it into the final set
+        pruned_count = len(below_threshold) + max(0, len(above_threshold) - top_k)
         telemetry = {
             "total_input": len(candidates),
             "retained_count": len(retained_docs),
-            "pruned_count": len(candidates) - len(retained_docs),
+            "pruned_count": pruned_count,
             "threshold": threshold,
             "rank_shifts": rank_shifts
         }

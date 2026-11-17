@@ -74,7 +74,8 @@ class GeminiClient:
             except urllib.error.HTTPError as e:
                 err_body = e.read().decode("utf-8", errors="ignore")
                 logger.warning(f"Gemini call to {clean_model} returned {e.code}: {err_body[:120]}. Trying next fallback...")
-                time.sleep(0.5)
+                # Rate-limit errors need a longer backoff to avoid cascading 429s
+                time.sleep(10 if e.code == 429 else 0.5)
             except Exception as e:
                 logger.warning(f"Error calling {clean_model}: {e}. Trying next fallback...")
                 time.sleep(0.5)

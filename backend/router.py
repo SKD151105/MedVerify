@@ -23,9 +23,12 @@ COMPARATIVE_PATTERNS = [
 ]
 
 CLINICAL_PATTERNS = [
-    r"\bdoes\b", r"\befficacy\b", r"\bmortality\b", r"\brisk of\b",
+    r"\befficacy\b", r"\bmortality\b", r"\brisk of\b",
     r"\btrial\b", r"\brandomized\b", r"\bdosage\b", r"\bdose adjustment\b",
-    r"\bpatients with\b", r"\btreatment\b", r"\btherapy\b", r"\breduce\b"
+    r"\bpatients with\b", r"\btreatment\b", r"\btherapy\b", r"\breduce\b",
+    # Narrowed: only match "does" when followed by an action verb to avoid
+    # false positives on "What does X mean?" style definitional queries.
+    r"\bdoes .+(?:reduce|increase|affect|improve|prevent|cause|lower|raise|interact)\b"
 ]
 
 
