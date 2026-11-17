@@ -45,7 +45,16 @@ class MedVerifyPipeline:
         # 2. Hybrid Search & Neural Rerank
         if requires_retrieval:
             t0 = time.time()
-            raw_candidates = self.retriever.hybrid_search(query, top_k=RAW_RETRIEVAL_TOP_K)
+            # If multi-hop routing detected multiple sub-queries, execute iterative search across each
+            if route_info.get("route") == "MULTI_HOP" and len(route_info.get("sub_queries", [])) > 1:
+                combined_hits: Dict[str, Any] = {}
+                for sq in route_info["sub_queries"]:
+                    for doc in self.retriever.hybrid_search(sq, top_k=RAW_RETRIEVAL_TOP_K):
+                        if doc["id"] not in combined_hits:
+                            combined_hits[doc["id"]] = doc
+                raw_candidates = list(combined_hits.values())[:RAW_RETRIEVAL_TOP_K]
+            else:
+                raw_candidates = self.retriever.hybrid_search(query, top_k=RAW_RETRIEVAL_TOP_K)
             retrieval_ms = round((time.time() - t0) * 1000, 2)
 
             t1 = time.time()
